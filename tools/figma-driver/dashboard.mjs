@@ -1,7 +1,7 @@
 // ダッシュボードを「画像貼り」でなく全ネイティブ部品で再構築するデモ。
 // 骨格は絶対座標＋固定幅（mock/本物Figmaで同じ絵）。部品内部はオートレイアウトで編集容易。
 import { clear, frame, text, arrow, exportPng, zoomFit } from './fig.mjs';
-import { sidebar, statCard, actionBar, button, table, donut, legendItem, sectionHeader, input, avatar, card } from './components.mjs';
+import { sidebar, statCard, actionBar, button, table, donutChart, legendItem, sectionHeader, input, avatar, card } from './components.mjs';
 import { c } from './tokens.mjs';
 
 const W = 1180, H = 760;
@@ -56,9 +56,10 @@ await table({
 // ── 下段右：ステータス構成（ドーナツ＋凡例）
 const dCard = await card({ parentId: root, x: mainX + 664, y: botY, width: 320, height: 300, layoutMode: 'VERTICAL', itemSpacing: 16, padding: 20 });
 await sectionHeader({ parentId: dCard, title: 'ステータス構成' });
-const dRow = await frame({ parentId: dCard, layoutMode: 'HORIZONTAL', counterAlign: 'CENTER', itemSpacing: 20, fills: null });
-await donut({ parentId: dRow, value: '3', ringColor: c.ok });
-const legend = await frame({ parentId: dRow, layoutMode: 'VERTICAL', itemSpacing: 10, fills: null });
+const dRow = await frame({ parentId: dCard, layoutMode: 'HORIZONTAL', counterAlign: 'CENTER', itemSpacing: 24, fills: null });
+await donutChart({ parentId: dRow, size: 140, thickness: 22, value: '3', caption: '合計',
+  segments: [{ value: 1, color: c.ok }, { value: 1, color: c.brand }, { value: 1, color: c.warn }] });
+const legend = await frame({ parentId: dRow, layoutMode: 'VERTICAL', itemSpacing: 12, fills: null });
 await legendItem({ parentId: legend, color: c.ok,    label: '成約 1' });
 await legendItem({ parentId: legend, color: c.brand, label: '商談中 1' });
 await legendItem({ parentId: legend, color: c.warn,  label: '検討中 1' });

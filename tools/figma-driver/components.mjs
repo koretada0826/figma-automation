@@ -1,20 +1,70 @@
-// Design Driver — SaaS UIコンポーネント（トークン準拠・拡張前提の初期セット）
+// Design Driver — UIコンポーネント（トークン準拠・プロ仕様）
+// 設計指針は design-knowledge/ を正典とする。
 import { frame, rect, text, ellipse, svg } from './fig.mjs';
 import { c, r, font, jp, shadow } from './tokens.mjs';
 
-// ボタン（primary塗り / secondary白枠）
+/* ============ SVGチャート・ヘルパー（本物の円弧/折れ線） ============ */
+// ドーナツ：セグメントを stroke-dasharray でリング上に並べる（-90°=真上始点）
+function donutSvg(size, thickness, segments, track = '#f1f5f9') {
+  const R = (size - thickness) / 2, cx = size / 2, cy = size / 2, C = 2 * Math.PI * R;
+  const total = (segments || []).reduce((a, s) => a + (s.value || 0), 0) || 1;
+  let off = 0, paths = '';
+  for (const s of segments || []) {
+    const len = (s.value / total) * C;
+    paths += `<circle cx="${cx}" cy="${cy}" r="${R.toFixed(2)}" fill="none" stroke="${s.color}" stroke-width="${thickness}" stroke-dasharray="${len.toFixed(2)} ${(C - len).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 ${cx} ${cy})"/>`;
+    off += len;
+  }
+  return `<svg viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg"><circle cx="${cx}" cy="${cy}" r="${R.toFixed(2)}" fill="none" stroke="${track}" stroke-width="${thickness}"/>${paths}</svg>`;
+}
+// 折れ線/スパークライン：data配列を正規化してpolyline化。fillでエリア塗り
+function sparklineSvg(w, h, data, color, fillArea) {
+  const pad = 3, min = Math.min(...data), max = Math.max(...data), range = (max - min) || 1;
+  const pts = data.map((v, i) => [pad + i * (w - 2 * pad) / Math.max(1, data.length - 1), h - pad - (v - min) / range * (h - 2 * pad)]);
+  const line = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+  const area = fillArea ? `<path d="${line} L ${pts[pts.length - 1][0].toFixed(1)} ${h} L ${pts[0][0].toFixed(1)} ${h} Z" fill="${fillArea}" opacity="0.5"/>` : '';
+  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">${area}<path d="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+
+// ドーナツチャート（本物のセグメント＋中央合計、数値はネイティブtextで編集可能）
+export async function donutChart(o) {
+  const size = o.size || 140, th = o.thickness || 22;
+  const wrap = await frame({ name: 'donutChart', parentId: o.parentId, x: o.x, y: o.y, width: size, height: size, fills: null });
+  await svg({ parentId: wrap, x: 0, y: 0, width: size, height: size, svg: donutSvg(size, th, o.segments || []) });
+  if (o.value != null) await text({ parentId: wrap, x: 0, y: Math.round(size / 2 - (o.caption ? 22 : 18)), width: size, align: 'CENTER', characters: String(o.value), fontName: font('Bold'), fontSize: 30, fills: c.ink });
+  if (o.caption) await text({ parentId: wrap, x: 0, y: Math.round(size / 2 + 12), width: size, align: 'CENTER', characters: o.caption, fontName: jp('Regular'), fontSize: 11, fills: c.sub });
+  return wrap;
+}
+
+// スパークライン（折れ線・単体）
+export async function sparkline(o) {
+  const w = o.width || 120, h = o.height || 32;
+  return svg({ parentId: o.parentId, x: o.x, y: o.y, width: w, height: h, svg: sparklineSvg(w, h, o.data || [3, 5, 4, 7, 6, 9, 8], o.color || c.brand, o.fill) });
+}
+
+// ボタン（variant: primary/secondary/ghost/danger, size: sm/md/lg）
 export async function button(o) {
-  const primary = o.variant !== 'secondary';
-  const b = await frame({ name: 'btn', parentId: o.parentId, x: o.x, y: o.y, width: o.width || 160, height: 40, cornerRadius: r.btn, layoutMode: 'HORIZONTAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', itemSpacing: 8, padding: 10, fills: primary ? c.brand : c.surface, strokes: primary ? null : c.border, strokeWeight: primary ? 0 : 1, effects: primary ? shadow.sm : null });
-  await text({ parentId: b, characters: o.label || 'Button', fontName: jp('Bold'), fontSize: 14, fills: primary ? c.white : c.ink });
+  const V = {
+    primary:   { fill: c.brand,   stroke: null,     sw: 0, ink: c.white, eff: shadow.xs },
+    secondary: { fill: c.surface, stroke: c.border, sw: 1, ink: c.body,  eff: shadow.xs },
+    ghost:     { fill: null,      stroke: null,     sw: 0, ink: c.body,  eff: null },
+    danger:    { fill: c.ng,      stroke: null,     sw: 0, ink: c.white, eff: shadow.xs },
+  };
+  const st = V[o.variant] || V.primary;
+  const H = { sm: 32, md: 40, lg: 44 }[o.size] || 40;
+  const b = await frame({ name: 'btn', parentId: o.parentId, x: o.x, y: o.y, width: o.width || 160, height: H, cornerRadius: r.btn, layoutMode: 'HORIZONTAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', itemSpacing: 8, paddingH: 16, fills: st.fill, strokes: st.stroke, strokeWeight: st.sw, effects: st.eff });
+  await text({ parentId: b, width: o.width ? o.width - 32 : undefined, align: o.width ? 'CENTER' : undefined, characters: o.label || 'Button', fontName: jp('Bold'), fontSize: 14, fills: st.ink });
   return b;
 }
 
-// ステータスピル（意味のある色のみ）
+// ステータスピル（役割色 fg/bg ペアで良コントラスト）
 export async function pill(o) {
-  const map = { ok: [c.ok, '#f0fdf4'], ng: [c.ng, '#fef2f2'], warn: [c.warn, '#fff7ed'], neutral: [c.sub, '#f3f4f6'], brand: [c.brand, c.brand050] };
+  const map = {
+    ok: [c.okFg, c.okBg], ng: [c.ngFg, c.ngBg], warn: [c.warnFg, c.warnBg], info: [c.infoFg, c.infoBg],
+    neutral: [c.sub, c.bgSubtle], brand: [c.brand700, c.brand050],
+  };
   const [fg, bgc] = map[o.tone || 'neutral'];
   const p = await frame({ name: 'pill', parentId: o.parentId, x: o.x, y: o.y, height: 24, cornerRadius: r.pill, layoutMode: 'HORIZONTAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', paddingH: 11, primaryAxisSizing: 'AUTO', counterAxisSizing: 'FIXED', fills: bgc });
+  if (o.dot) await ellipse({ parentId: p, width: 6, height: 6, fills: fg });
   await text({ parentId: p, characters: o.label, fontName: jp('Bold'), fontSize: 12, fills: fg });
   return p;
 }
@@ -74,16 +124,15 @@ export async function sectionHeader(o) {
   return h;
 }
 
-// KPIカード + トレンド線（数字ファースト・下に淡い折れ線バー）
+// KPIカード + 本物のスパークライン（数字ファースト）
 export async function statCard(o) {
-  const card = await frame({ name: 'stat', parentId: o.parentId, x: o.x, y: o.y, width: o.width || 320, height: 150, cornerRadius: r.card, layoutMode: 'VERTICAL', itemSpacing: 6, pad: [20, 22, 18, 22], fills: c.surface, strokes: c.border, strokeWeight: 1, effects: shadow.sm });
+  const W = o.width || 320;
+  const down = o.deltaTone === 'down';
+  const card = await frame({ name: 'stat', parentId: o.parentId, x: o.x, y: o.y, width: W, height: 148, cornerRadius: r.card, layoutMode: 'VERTICAL', itemSpacing: 8, pad: [20, 22, 20, 22], fills: c.surface, strokes: c.border, strokeWeight: 1, effects: shadow.sm });
   await text({ parentId: card, characters: o.label, fontName: jp('Medium'), fontSize: 13, fills: c.sub });
   await text({ parentId: card, characters: String(o.value), fontName: font('Bold'), fontSize: 34, fills: c.ink });
-  if (o.delta) await text({ parentId: card, characters: o.delta, fontName: jp('Medium'), fontSize: 12, fills: o.deltaTone === 'down' ? c.ng : c.ok });
-  // 折れ線を細いバー群で近似（下部・薄い青）
-  const spark = await frame({ name: 'spark', parentId: card, width: (o.width || 320) - 44, height: 22, layoutMode: 'HORIZONTAL', itemSpacing: 4, counterAlign: 'CENTER', fills: null });
-  const bars = o.spark || [6, 9, 7, 12, 10, 15, 13];
-  for (const b of bars) await rect({ parentId: spark, width: 8, height: b, cornerRadius: 2, fills: c.brand100 });
+  if (o.delta) await text({ parentId: card, characters: o.delta, fontName: jp('Medium'), fontSize: 12, fills: down ? c.ng : c.ok });
+  await sparkline({ parentId: card, width: W - 44, height: 30, data: o.spark || [6, 9, 7, 12, 10, 15, 13], color: down ? c.ng : c.brand, fill: down ? c.ngBg : c.brand050 });
   return card;
 }
 

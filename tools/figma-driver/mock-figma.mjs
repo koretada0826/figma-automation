@@ -98,6 +98,10 @@ function renderNode(node) {
     html = '<div style="' + base + 'color:' + cssFill(c.fills, '#111827') + ';font-size:' + (c.fontSize || 14) + 'px;font-weight:' + fw + ';line-height:' + (c.lineHeight || (c.fontSize || 14) * 1.4) + 'px;display:flex;align-items:center;justify-content:' + (c.align === 'CENTER' ? 'center' : 'flex-start') + ';white-space:pre">' + escapeHtml(c.characters) + '</div>';
   } else if (c.cmd === 'createArrow') {
     html = '<div style="' + base + '"><svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '"><line x1="1" y1="' + (h / 2) + '" x2="' + (w - 8) + '" y2="' + (h / 2) + '" stroke="' + cssFill(c.stroke, '#2563eb') + '" stroke-width="' + (c.strokeWeight || 3) + '" stroke-linecap="round"/><path d="M ' + (w - 12) + ' ' + (h / 2 - 5) + ' L ' + (w - 2) + ' ' + (h / 2) + ' L ' + (w - 12) + ' ' + (h / 2 + 5) + '" fill="none" stroke="' + cssFill(c.stroke, '#2563eb') + '" stroke-width="' + (c.strokeWeight || 3) + '" stroke-linecap="round" stroke-linejoin="round"/></svg></div>';
+  } else if (c.cmd === 'createSvg') {
+    // SVG文字列をそのまま埋め込み（幅高さにフィット）。本物Figmaは createNodeFromSvg で描画。
+    const svg = String(c.svg || '').replace(/<svg /, '<svg width="' + w + '" height="' + h + '" preserveAspectRatio="xMidYMid meet" ');
+    html = '<div style="' + base + '">' + svg + '</div>';
   } else if (c.cmd === 'placeImage') {
     html = '<div style="' + base + radius + border + shadow + 'overflow:hidden"><img src="' + c._dataUrl + '" style="width:100%;height:100%;object-fit:cover"/></div>';
   } else {
