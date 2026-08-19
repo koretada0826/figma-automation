@@ -8,7 +8,7 @@ const grad = { gradient: 'linear', angle: 135, stops: [{ color: V, pos: 0 }, { c
 const navyOld = '#1e3a5f';
 
 await clear();
-const BW = 2560, BH = 4700;
+const BW = 2560, BH = 4980;
 const root = await frame({ name: 'Portfolio-営業重複管理ツール', x: 0, y: 0, width: BW, height: BH, fills: ramp.gray[100], clip: true });
 
 /* ===================== 表紙（カバー） ===================== */
@@ -243,7 +243,7 @@ Y += 96;
 /* 06 代理店ダッシュボード */
 await sectionTitle(80, Y, '06', '代理店ダッシュボード', 'KPI・重複チェック導線・登録企業テーブルで営業前の状況を一目に。');
 Y += 70;
-{ const bw = 760, bh = 400;
+{ const bw = 760, bh = 500;
   await tag(root, 80, Y - 4, 'BEFORE', false);
   const { s, top } = await beforeShell(80, Y + 30, bw, bh, 'ダッシュボード', 'まずはここから！営業前に重複チェック');
   const b1 = await frame({ parentId: s, x: 20, y: top, width: 360, height: 108, cornerRadius: 8, fills: navyOld });
@@ -254,8 +254,8 @@ Y += 70;
   await text({ parentId: s, x: 20, y: top + 128, characters: '登録した商談済み企業（0件）', fontName: jp('Bold'), fontSize: 14, fills: '#1e293b' });
   await text({ parentId: s, x: 20, y: top + 154, characters: 'まだ登録した企業はありません。', fontName: jp('Regular'), fontSize: 12, fills: c.faint });
 }
-await baArrow(880, Y + 230);
-{ const aw = 1000, ah = 400;
+await baArrow(880, Y + 280);
+{ const aw = 1000, ah = 500;
   await tag(root, 1020, Y - 4, 'AFTER', true);
   const { s, mx } = await afterShell(1020, Y + 30, aw, ah, 0, 'ダッシュボード', 'こんにちは、代理店Aさん', AGENCY_NAV);
   await statRow({ parentId: s, x: mx, y: 86, w: 150, gap: 14, items: [
@@ -274,7 +274,7 @@ await baArrow(880, Y + 230);
 }
 
 /* 07 重複チェック */
-Y += 470;
+Y += 580;
 await sectionTitle(80, Y, '07', '重複チェック', '検索→信号機で即判定。競合情報は出さず結果だけ返す設計を明示。');
 Y += 70;
 { const bw = 760, bh = 360;
