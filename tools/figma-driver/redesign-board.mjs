@@ -3,7 +3,7 @@ import { clear, frame, text, arrow, exportPng, zoomFit } from './fig.mjs';
 import { sidebar, table, pill, button, input, icon, avatar } from './components.mjs';
 import { c, ramp, font, jp, shadow } from './tokens.mjs';
 
-const V = ramp.violet[600], VD = ramp.violet[700], NAV = '#1e293b';
+const V = ramp.violet[600], VD = ramp.violet[700], NAV = ramp.gray[900]; // #0f172a
 await clear();
 
 // ボード土台
@@ -63,7 +63,7 @@ const ax = bx + bW + 160, ay = 130, aW = 1060, aH = 700;
 await text({ parentId: root, x: ax, y: ay - 30, characters: 'AFTER — 改修案', fontName: jp('Bold'), fontSize: 14, fills: V });
 const after = await frame({ name: 'after', parentId: root, x: ax, y: ay, width: aW, height: aH, cornerRadius: 16, fills: ramp.gray[50], strokes: ramp.gray[200], strokeWeight: 1, clip: true, effects: shadow.lg });
 // サイドバー
-await sidebar({ parentId: after, x: 0, y: 0, width: 84, height: aH, navFill: NAV, accent: V, logo: 'T',
+await sidebar({ parentId: after, x: 0, y: 0, width: 92, height: aH, navFill: NAV, accent: V, logo: 'T',
   items: [{ label: '企業', icon: 'building' }, { label: '代理店', icon: 'users' }, { label: '提案', icon: 'calendar' }, { label: '登録', icon: 'plus' }, { label: '設定', icon: 'settings' }], active: 0 });
 const mx = 108;
 // トップバー
@@ -75,13 +75,15 @@ await icon({ parentId: addBtn, name: 'plus', size: 16, color: c.white });
 await text({ parentId: addBtn, characters: '過去の企業を登録', fontName: jp('Bold'), fontSize: 13, fills: c.white });
 await frame({ parentId: after, x: mx, y: 78, width: aW - mx - 24, height: 1, fills: c.line });
 
-// ステータス別サマリー（小チップ）
-const sums = [['全件', '133', c.ink, ramp.gray[100]], ['提案可能', '38', ramp.green[700], ramp.green[50]], ['商談中', '52', ramp.blue[700], ramp.blue[50]], ['検討中', '43', ramp.amber[700], ramp.amber[50]]];
+// ステータス別サマリー（白基調・色を使わずドットだけで区別）
+const sums = [['全件', '133', null], ['提案可能', '38', ramp.green[500]], ['商談中', '52', ramp.blue[500]], ['検討中', '43', ramp.amber[500]]];
 let sx = mx;
-for (const [lb, vl, fg, bg] of sums) {
-  const chip = await frame({ parentId: after, x: sx, y: 96, width: 150, height: 60, cornerRadius: 12, fills: bg, layoutMode: 'VERTICAL', itemSpacing: 2, padding: 14 });
-  await text({ parentId: chip, characters: lb, fontName: jp('Medium'), fontSize: 12, fills: fg });
-  await text({ parentId: chip, characters: vl, fontName: font('Bold'), fontSize: 22, fills: fg });
+for (const [lb, vl, dot] of sums) {
+  const chip = await frame({ parentId: after, x: sx, y: 96, width: 150, height: 62, cornerRadius: 12, fills: c.surface, strokes: c.border, strokeWeight: 1, layoutMode: 'VERTICAL', itemSpacing: 4, padding: 14 });
+  const lr = await frame({ parentId: chip, layoutMode: 'HORIZONTAL', counterAlign: 'CENTER', itemSpacing: 6, fills: [] });
+  if (dot) await frame({ parentId: lr, width: 8, height: 8, cornerRadius: 999, fills: dot });
+  await text({ parentId: lr, characters: lb, fontName: jp('Medium'), fontSize: 12, fills: c.sub });
+  await text({ parentId: chip, characters: vl, fontName: font('Bold'), fontSize: 22, fills: c.ink });
   sx += 162;
 }
 
@@ -98,12 +100,12 @@ await table({
     { key: 'ok', label: '提案可否', w: 108, align: 'LEFT' },
   ],
   rows: [
-    { name: 'アミックス', tel: '03-3676-2881', date: '2026-08-17', stat: { pill: '検討中', tone: 'warn', dot: true }, agency: 'TELEMO直営', ok: { pill: 'NG', tone: 'ng', dot: true } },
-    { name: 'エコライフジャパン', tel: '086-441-0505', date: '2026-08-10', stat: { pill: '商談中', tone: 'info', dot: true }, agency: 'TELEMO直営', ok: { pill: 'NG', tone: 'ng', dot: true } },
-    { name: 'カラフルライン', tel: '0120-955-878', date: '2026-08-06', stat: { pill: '検討中', tone: 'warn', dot: true }, agency: 'ラスワン', ok: { pill: 'NG', tone: 'ng', dot: true } },
-    { name: 'ヤマガタヤ', tel: '052-331-3588', date: '2026-07-30', stat: { pill: '失注', tone: 'neutral', dot: true }, agency: 'TELEMO直営', ok: { pill: 'OK', tone: 'ok', dot: true } },
-    { name: 'ユトミ', tel: '03-5846-9355', date: '2026-07-26', stat: { pill: '成約', tone: 'ok', dot: true }, agency: 'ライト通信', ok: { pill: 'NG', tone: 'ng', dot: true } },
-    { name: 'キズナHD', tel: '03-5843-7092', date: '2026-07-27', stat: { pill: '商談中', tone: 'info', dot: true }, agency: 'TELEMO直営', ok: { pill: 'NG', tone: 'ng', dot: true } },
+    { name: 'アミックス', tel: '03-3676-2881', date: '2026-08-17', stat: { pill: '検討中', tone: 'warn', dot: true, subtle: true }, agency: 'TELEMO直営', ok: { pill: 'NG', tone: 'ng' } },
+    { name: 'エコライフジャパン', tel: '086-441-0505', date: '2026-08-10', stat: { pill: '商談中', tone: 'info', dot: true, subtle: true }, agency: 'TELEMO直営', ok: { pill: 'NG', tone: 'ng' } },
+    { name: 'カラフルライン', tel: '0120-955-878', date: '2026-08-06', stat: { pill: '検討中', tone: 'warn', dot: true, subtle: true }, agency: 'ラスワン', ok: { pill: 'NG', tone: 'ng' } },
+    { name: 'ヤマガタヤ', tel: '052-331-3588', date: '2026-07-30', stat: { pill: '失注', tone: 'neutral', dot: true, subtle: true }, agency: 'TELEMO直営', ok: { pill: 'OK', tone: 'ok' } },
+    { name: 'ユトミ', tel: '03-5846-9355', date: '2026-07-26', stat: { pill: '成約', tone: 'ok', dot: true, subtle: true }, agency: 'ライト通信', ok: { pill: 'NG', tone: 'ng' } },
+    { name: 'キズナHD', tel: '03-5843-7092', date: '2026-07-27', stat: { pill: '商談中', tone: 'info', dot: true, subtle: true }, agency: 'TELEMO直営', ok: { pill: 'NG', tone: 'ng' } },
   ],
 });
 

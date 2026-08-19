@@ -1,7 +1,7 @@
 // Design Driver — UIコンポーネント（トークン準拠・プロ仕様）
 // 設計指針は design-knowledge/ を正典とする。
 import { frame, rect, text, ellipse, svg } from './fig.mjs';
-import { c, r, font, jp, shadow } from './tokens.mjs';
+import { c, r, ramp, font, jp, shadow } from './tokens.mjs';
 import { iconSvg } from './icons.mjs';
 
 // ラインアイコン（色を焼き込んだSVGをネイティブ配置）
@@ -63,16 +63,17 @@ export async function button(o) {
   return b;
 }
 
-// ステータスピル（役割色 fg/bg ペアで良コントラスト）
+// ステータスピル。subtle=true で「淡いグレー地＋色ドット＋濃文字」の落ち着いた表現（色数を抑える）
 export async function pill(o) {
   const map = {
     ok: [c.okFg, c.okBg], ng: [c.ngFg, c.ngBg], warn: [c.warnFg, c.warnBg], info: [c.infoFg, c.infoBg],
     neutral: [c.sub, c.bgSubtle], brand: [c.brand700, c.brand050],
   };
   const [fg, bgc] = map[o.tone || 'neutral'];
-  const p = await frame({ name: 'pill', parentId: o.parentId, x: o.x, y: o.y, height: 24, cornerRadius: r.pill, layoutMode: 'HORIZONTAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', paddingH: 11, primaryAxisSizing: 'AUTO', counterAxisSizing: 'FIXED', fills: bgc });
+  const subtle = o.subtle;
+  const p = await frame({ name: 'pill', parentId: o.parentId, x: o.x, y: o.y, height: 24, cornerRadius: r.pill, layoutMode: 'HORIZONTAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', paddingH: 10, itemSpacing: 6, primaryAxisSizing: 'AUTO', counterAxisSizing: 'FIXED', fills: subtle ? c.bgSubtle : bgc });
   if (o.dot) await ellipse({ parentId: p, width: 6, height: 6, fills: fg });
-  await text({ parentId: p, characters: o.label, fontName: jp('Bold'), fontSize: 12, fills: fg });
+  await text({ parentId: p, characters: o.label, fontName: jp('Medium'), fontSize: 12, fills: subtle ? c.body : fg });
   return p;
 }
 
@@ -86,20 +87,27 @@ export async function kpiCard(o) {
 }
 
 // サイドバー（ダーク・アイコン＋ラベル）。items=[{label,icon}] or 文字列
-// accent=ブランド色, navFill=地色。アクティブは塗り、非アクティブはicon/textを淡色
+// accent=アクセント, navFill=地色, activeBg=アクティブ地（既定は地色より一段明るいスレート）
+// アクティブ＝淡い明色地＋アクセントのアイコン＋白文字。非アクティブ＝淡色。
 export async function sidebar(o) {
   const items = (o.items || []).map((it) => (typeof it === 'string' ? { label: it, icon: 'check' } : it));
   const accent = o.accent || c.brand;
   const navFill = o.navFill || c.nav;
-  const bar = await frame({ name: 'sidebar', parentId: o.parentId, x: o.x || 0, y: o.y || 0, width: o.width || 96, height: o.height || 720, layoutMode: 'VERTICAL', itemSpacing: 6, pad: [22, 12, 22, 12], counterAlign: 'CENTER', fills: navFill });
-  const lg = await frame({ name: 'logo', parentId: bar, width: 40, height: 40, cornerRadius: 11, layoutMode: 'HORIZONTAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', fills: accent, effects: shadow.sm });
-  await text({ parentId: lg, width: 40, align: 'CENTER', characters: o.logo || 'T', fontName: font('Bold'), fontSize: 18, fills: c.white });
-  const spacer = await frame({ parentId: bar, width: 4, height: 8, fills: [] });
+  const activeBg = o.activeBg || ramp.gray[800];
+  const width = o.width || 92;
+  const bar = await frame({ name: 'sidebar', parentId: o.parentId, x: o.x || 0, y: o.y || 0, width, height: o.height || 720, layoutMode: 'VERTICAL', itemSpacing: 4, pad: [22, 10, 22, 10], counterAlign: 'CENTER', fills: navFill });
+  // ロゴ
+  const lg = await frame({ name: 'logo', parentId: bar, width: 38, height: 38, cornerRadius: 10, layoutMode: 'HORIZONTAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', fills: accent });
+  await text({ parentId: lg, width: 38, align: 'CENTER', characters: o.logo || 'T', fontName: font('Bold'), fontSize: 17, fills: c.white });
+  // ロゴとナビの区切り（余白＋細い線）
+  await frame({ name: 'gap', parentId: bar, width: 4, height: 10, fills: [] });
+  await frame({ name: 'divider', parentId: bar, width: width - 28, height: 1, fills: ramp.gray[700] });
+  await frame({ name: 'gap', parentId: bar, width: 4, height: 10, fills: [] });
   for (let i = 0; i < items.length; i++) {
     const on = i === (o.active || 0);
-    const it = await frame({ name: 'nav-' + items[i].label, parentId: bar, width: 64, height: 58, cornerRadius: 14, layoutMode: 'VERTICAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', itemSpacing: 5, fills: on ? accent : [] });
-    await icon({ parentId: it, name: items[i].icon || 'check', size: 22, color: on ? c.white : c.navSub, strokeWidth: on ? 2.2 : 1.8 });
-    await text({ parentId: it, width: 64, align: 'CENTER', characters: items[i].label, fontName: jp('Medium'), fontSize: 11, fills: on ? c.white : c.navSub });
+    const it = await frame({ name: 'nav-' + items[i].label, parentId: bar, width: width - 16, height: 60, cornerRadius: 12, layoutMode: 'VERTICAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', itemSpacing: 6, fills: on ? activeBg : [] });
+    await icon({ parentId: it, name: items[i].icon || 'check', size: 21, color: on ? accent : ramp.gray[400], strokeWidth: on ? 2.2 : 1.8 });
+    await text({ parentId: it, width: width - 16, align: 'CENTER', characters: items[i].label, fontName: jp(on ? 'Bold' : 'Medium'), fontSize: 11, fills: on ? c.white : ramp.gray[400] });
   }
   return bar;
 }
@@ -183,8 +191,8 @@ export async function table(o) {
     for (const col of cols) {
       const cell = row[col.key];
       if (cell && cell.pill) {
-        const cw = await frame({ parentId: rr, width: col.w, height: 46, layoutMode: 'HORIZONTAL', counterAlign: 'CENTER', fills: null });
-        await pill({ parentId: cw, label: cell.pill, tone: cell.tone });
+        const cw = await frame({ parentId: rr, width: col.w, height: 46, layoutMode: 'HORIZONTAL', counterAlign: 'CENTER', fills: [] });
+        await pill({ parentId: cw, label: cell.pill, tone: cell.tone, dot: cell.dot, subtle: cell.subtle });
       } else {
         await text({ parentId: rr, width: col.w, characters: String(cell && cell.text != null ? cell.text : cell), fontName: jp('Regular'), fontSize: 13, fills: c.ink, align: col.align });
       }
