@@ -1,6 +1,6 @@
 // 営業重複管理ツール — UI Redesign ポートフォリオ（表紙 + 全画面Before/After + 改善ノート + 遷移フロー）
 import { clear, frame, text, arrow, svg, exportPng, zoomFit } from './fig.mjs';
-import { sidebar, table, input, icon, avatar, statRow } from './components.mjs';
+import { sidebar, table, pill, input, icon, avatar, statRow } from './components.mjs';
 import { c, ramp, font, jp, shadow } from './tokens.mjs';
 
 const V = ramp.violet[600], VD = ramp.violet[700], NAV = ramp.gray[900];
@@ -73,10 +73,39 @@ async function plainTable(parent, x, y, w, cols, cw, rows) {
     ry += 39;
   }
 }
-// After用テーブル
+// After用テーブル（カード型：ダッシュボード等のウィジェット向け）
 async function afterTable(parent, x, y, w, h, cols, rows) {
   const card = await frame({ parentId: parent, x, y, width: w, height: h, cornerRadius: 14, fills: c.surface, strokes: c.border, strokeWeight: 1, effects: shadow.sm, layoutMode: 'VERTICAL', itemSpacing: 8, padding: 18 });
   await table({ parentId: card, columns: cols, rows });
+}
+// 全幅リストテーブル（一覧ページ向け：カードで囲わず、スクロールしやすい）
+// 白い面を敷き、ヘッダーは淡い地＋下ボーダー、行は端まで・均一高さ・行間ディバイダ。
+async function listTable(parent, x, y, w, cols, rows, rowH = 52) {
+  const totalRows = rows.length;
+  const panelH = 44 + 2 + totalRows * (rowH + 1) + 12;
+  const panel = await frame({ parentId: parent, x, y, width: w, height: panelH, cornerRadius: 10, fills: c.surface, strokes: c.border, strokeWeight: 1, clip: true });
+  const px = 20;
+  // ヘッダー（淡い地＋下ボーダー）
+  const hr = await frame({ parentId: panel, x: 0, y: 0, width: w, height: 44, layoutMode: 'HORIZONTAL', counterAlign: 'CENTER', paddingH: px, fills: ramp.gray[50] });
+  for (const col of cols) await text({ parentId: hr, width: col.w, characters: col.label, fontName: jp('Bold'), fontSize: 12, fills: c.sub, align: col.align });
+  await frame({ parentId: panel, x: 0, y: 44, width: w, height: 2, fills: c.border });
+  let ry = 46;
+  for (const row of rows) {
+    const rr = await frame({ parentId: panel, x: 0, y: ry, width: w, height: rowH, layoutMode: 'HORIZONTAL', counterAlign: 'CENTER', paddingH: px, fills: [] });
+    for (const col of cols) {
+      const cell = row[col.key];
+      if (cell && cell.pill) {
+        const cw = await frame({ parentId: rr, width: col.w, height: rowH, layoutMode: 'HORIZONTAL', counterAlign: 'CENTER', fills: [] });
+        await pill({ parentId: cw, label: cell.pill, tone: cell.tone, dot: cell.dot, subtle: cell.subtle });
+      } else {
+        await text({ parentId: rr, width: col.w, characters: String(cell && cell.text != null ? cell.text : cell), fontName: jp('Regular'), fontSize: 13, fills: c.ink, align: col.align });
+      }
+    }
+    ry += rowH;
+    await frame({ parentId: panel, x: 0, y: ry, width: w, height: 1, fills: c.line });
+    ry += 1;
+  }
+  return panel;
 }
 // フォーム項目（After）
 async function field(parent, x, y, w, label, ph, req) {
@@ -143,10 +172,10 @@ await baArrow(880, Y + 240);
   await statRow({ parentId: s, x: mx, y: 86, w: 148, gap: 14, items: [
     { label: '全件', value: '133' }, { label: '提案可能', value: '38', dot: ramp.green[500] },
     { label: '商談中', value: '52', dot: ramp.blue[500] }, { label: '検討中', value: '43', dot: ramp.amber[500] }] });
-  await afterTable(s, mx, 168, aw - mx - 20, ah - 188, [
-    { key: 'name', label: '企業名', w: 200, align: 'LEFT' }, { key: 'tel', label: '電話番号', w: 140, align: 'LEFT' },
-    { key: 'date', label: '商談日', w: 110, align: 'LEFT' }, { key: 'stat', label: 'ステータス', w: 130, align: 'LEFT' },
-    { key: 'agency', label: '担当代理店', w: 130, align: 'LEFT' }, { key: 'ok', label: '提案可否', w: 100, align: 'LEFT' }],
+  await listTable(s, mx, 168, aw - mx - 20, [
+    { key: 'name', label: '企業名', w: 226, align: 'LEFT' }, { key: 'tel', label: '電話番号', w: 150, align: 'LEFT' },
+    { key: 'date', label: '商談日', w: 120, align: 'LEFT' }, { key: 'stat', label: 'ステータス', w: 130, align: 'LEFT' },
+    { key: 'agency', label: '担当代理店', w: 130, align: 'LEFT' }, { key: 'ok', label: '提案可否', w: 80, align: 'LEFT' }],
     [{ name: 'アミックス', tel: '03-3676-2881', date: '2026-08-17', stat: { pill: '検討中', tone: 'warn', dot: true, subtle: true }, agency: 'TELEMO直営', ok: { pill: 'NG', tone: 'ng' } },
      { name: 'エコライフジャパン', tel: '086-441-0505', date: '2026-08-10', stat: { pill: '商談中', tone: 'info', dot: true, subtle: true }, agency: 'TELEMO直営', ok: { pill: 'NG', tone: 'ng' } },
      { name: 'ヤマガタヤ', tel: '052-331-3588', date: '2026-07-30', stat: { pill: '失注', tone: 'neutral', dot: true, subtle: true }, agency: 'TELEMO直営', ok: { pill: 'OK', tone: 'ok' } }]);
@@ -165,7 +194,7 @@ Y += 70;
     [['運営本部', 'admin', '運営本部', 'パスワード再設定'], ['サンプル代理店A', 'agency01', '販売代理店', 'パスワード再設定'], ['株式会社ライト通信', 'light-tsushin', '販売代理店', 'パスワード再設定']]);
 }
 await baArrow(880, Y + 230);
-{ const aw = 1000, ah = 400;
+{ const aw = 1000, ah = 448;
   await tag(root, 1020, Y - 4, 'AFTER', true);
   const { s, mx } = await afterShell(1020, Y + 30, aw, ah, 1, '代理店アカウント管理', '全12件');
   const fc = await frame({ parentId: s, x: mx, y: 86, width: aw - mx - 20, height: 92, cornerRadius: 12, fills: c.surface, strokes: c.border, strokeWeight: 1, effects: shadow.sm });
@@ -174,16 +203,16 @@ await baArrow(880, Y + 230);
   await field(fc, 432, 16, 160, '初期パスワード', '8文字以上');
   const abt = await frame({ parentId: fc, x: 610, y: 36, width: 100, height: 40, cornerRadius: 9, fills: V, layoutMode: 'HORIZONTAL', primaryAlign: 'CENTER', counterAlign: 'CENTER' });
   await text({ parentId: abt, width: 100, align: 'CENTER', characters: '＋ 追加', fontName: jp('Bold'), fontSize: 12, fills: c.white });
-  await afterTable(s, mx, 192, aw - mx - 20, ah - 212, [
-    { key: 'name', label: '名前', w: 240, align: 'LEFT' }, { key: 'id', label: 'ログインID', w: 200, align: 'LEFT' },
-    { key: 'role', label: '権限', w: 170, align: 'LEFT' }, { key: 'op', label: '操作', w: 180, align: 'LEFT' }],
+  await listTable(s, mx, 192, aw - mx - 20, [
+    { key: 'name', label: '名前', w: 260, align: 'LEFT' }, { key: 'id', label: 'ログインID', w: 220, align: 'LEFT' },
+    { key: 'role', label: '権限', w: 176, align: 'LEFT' }, { key: 'op', label: '操作', w: 180, align: 'LEFT' }],
     [{ name: '運営本部', id: 'admin', role: { pill: '運営本部', tone: 'brand' }, op: 'パスワード再設定' },
      { name: 'サンプル代理店A', id: 'agency01', role: { pill: '販売代理店', tone: 'neutral', subtle: true }, op: 'パスワード再設定' },
      { name: '株式会社ライト通信', id: 'light-tsushin', role: { pill: '販売代理店', tone: 'neutral', subtle: true }, op: 'パスワード再設定' }]);
 }
 
 /* ===================== 04 提案予定の一覧 ===================== */
-Y += 470;
+Y += 530;
 await sectionTitle(80, Y, '04', '提案予定の一覧', '余白と行間を整え、視認性の高い一覧に。');
 Y += 70;
 { const bw = 760, bh = 380;
@@ -196,9 +225,9 @@ await baArrow(880, Y + 210);
 { const aw = 1000, ah = 380;
   await tag(root, 1020, Y - 4, 'AFTER', true);
   const { s, mx } = await afterShell(1020, Y + 30, aw, ah, 2, '提案予定の一覧', '全215件（営業権は発生しません）');
-  await afterTable(s, mx, 86, aw - mx - 20, ah - 106, [
-    { key: 'name', label: '企業名', w: 300, align: 'LEFT' }, { key: 'tel', label: '電話番号', w: 160, align: 'LEFT' },
-    { key: 'agency', label: '登録した代理店', w: 170, align: 'LEFT' }, { key: 'date', label: '登録日', w: 130, align: 'LEFT' }],
+  await listTable(s, mx, 86, aw - mx - 20, [
+    { key: 'name', label: '企業名', w: 340, align: 'LEFT' }, { key: 'tel', label: '電話番号', w: 180, align: 'LEFT' },
+    { key: 'agency', label: '登録した代理店', w: 186, align: 'LEFT' }, { key: 'date', label: '登録日', w: 130, align: 'LEFT' }],
     [{ name: 'ジャパンプロパティリンク', tel: '011-522-6439', agency: 'TELEMO直営', date: '2026-08-19' },
      { name: 'エーワイオートチタテモノ', tel: '035-797-7061', agency: 'TELEMO直営', date: '2026-08-18' },
      { name: 'ゴエン', tel: '029-879-5683', agency: 'TELEMO直営', date: '2026-08-18' },
