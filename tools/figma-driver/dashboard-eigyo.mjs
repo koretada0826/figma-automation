@@ -55,7 +55,7 @@ await button({ parentId: root, x: mainX + 720, y: aY + 14, width: 320, height: 4
 
 // 登録企業テーブル（全幅・情報密度アップ）
 const tY = 424;
-const tCard = await frame({ name: 'card', parentId: root, x: mainX, y: tY, width: 1040, height: 356, cornerRadius: 16, fills: c.surface, strokes: c.border, strokeWeight: 1, effects: shadow.sm, layoutMode: 'VERTICAL', itemSpacing: 14, padding: 24 });
+const tCard = await frame({ name: 'card', parentId: root, x: mainX, y: tY, width: 1040, height: 384, cornerRadius: 16, fills: c.surface, strokes: c.border, strokeWeight: 1, effects: shadow.sm, layoutMode: 'VERTICAL', itemSpacing: 16, padding: 24 });
 await sectionHeader({ parentId: tCard, title: '登録企業', link: 'すべて見る →' });
 await table({
   parentId: tCard,

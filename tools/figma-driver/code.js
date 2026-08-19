@@ -51,11 +51,20 @@ function autoLayout(n, cmd) {
   if (cmd.paddingV != null) { n.paddingTop = n.paddingBottom = cmd.paddingV; }
   if (cmd.paddingH != null) { n.paddingLeft = n.paddingRight = cmd.paddingH; }
   if (cmd.pad) { const p = cmd.pad; n.paddingTop = p[0]; n.paddingRight = p[1]; n.paddingBottom = p[2]; n.paddingLeft = p[3]; }
-  if (cmd.primaryAxisSizing) n.primaryAxisSizingMode = cmd.primaryAxisSizing;
-  if (cmd.counterAxisSizing) n.counterAxisSizingMode = cmd.counterAxisSizing;
+  // サイズ自動調整：幅/高さが明示されていれば FIXED（固定）にして指定寸法を守る。無ければ AUTO（中身に合わせて縮む）。
+  const horiz = cmd.layoutMode === 'HORIZONTAL';
+  const wProvided = 'width' in cmd, hProvided = 'height' in cmd;
+  const primaryProvided = horiz ? wProvided : hProvided;
+  const counterProvided = horiz ? hProvided : wProvided;
+  n.primaryAxisSizingMode = cmd.primaryAxisSizing || (primaryProvided ? 'FIXED' : 'AUTO');
+  n.counterAxisSizingMode = cmd.counterAxisSizing || (counterProvided ? 'FIXED' : 'AUTO');
   if (cmd.primaryAlign) n.primaryAxisAlignItems = cmd.primaryAlign;
   if (cmd.counterAlign) n.counterAxisAlignItems = cmd.counterAlign;
   if (cmd.wrap) n.layoutWrap = 'WRAP';
+  // layoutMode 設定で寸法がリセットされることがあるので、両軸 FIXED のときは指定寸法で resize し直す
+  if (n.primaryAxisSizingMode === 'FIXED' && n.counterAxisSizingMode === 'FIXED') {
+    try { n.resize(wProvided ? cmd.width : n.width, hProvided ? cmd.height : n.height); } catch (e) {}
+  }
 }
 async function loadFont(fontName) {
   const req = fontName || { family: 'Inter', style: 'Regular' };
