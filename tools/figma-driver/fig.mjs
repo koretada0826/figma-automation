@@ -3,13 +3,22 @@ const BASE = 'http://localhost:3055';
 let _id = 1;
 const nid = () => 'n' + _id++;
 
+// 宛先ID（どのFigmaファイル＝どのプラグインに送るか）。
+// 環境変数 FIG_TARGET で指定。既定 "default"（従来どおり1ファイル運用）。
+// 複数同時に駆動したいときは: FIG_TARGET=a node smoke.mjs / FIG_TARGET=b node other.mjs
+let TARGET = (typeof process !== 'undefined' && process.env && process.env.FIG_TARGET) || 'default';
+export const getTarget = () => TARGET;
+export const setTarget = (t) => { TARGET = t || 'default'; return TARGET; };
+
 export async function send(cmd) {
-  const r = await fetch(BASE + '/cmd', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cmd) });
+  // ルーティングは _target（コマンドのノード指定 target と衝突させない）
+  const body = { ...cmd, _target: cmd._target || TARGET };
+  const r = await fetch(BASE + '/cmd', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   const j = await r.json();
   if (j && j.ok === false) throw new Error('cmd ' + cmd.cmd + ' failed: ' + j.error);
   return j.result != null ? j.result : j;
 }
-export async function health() { return (await fetch(BASE + '/health')).json(); }
+export async function health(target = TARGET) { return (await fetch(BASE + '/health?target=' + encodeURIComponent(target))).json(); }
 
 // 低レベル：id未指定なら自動採番して返す（parentIdに使える）
 async function make(cmd, opts) { const id = opts.id || nid(); await send({ ...cmd, ...opts, id }); return id; }

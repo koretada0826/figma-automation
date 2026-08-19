@@ -127,6 +127,30 @@ await exportPng(undefined, 'tmp/out.png', 2);   // 2倍解像度でPNG保存
 
 ---
 
+## 複数Figmaファイルを同時に駆動する（宛先ID / target ルーティング）
+
+単一キューだと複数プラグインが命令を奪い合うため、**宛先ID（target）**で振り分ける。
+`target` 省略時は `default`（＝従来どおり1ファイル運用と完全互換）。
+
+- **プラグイン側**：起動後、UIの「ターゲット」欄に名前を入れる（例：`a`）。ファイルごとに別名にする。
+- **コントローラ側**：環境変数 `FIG_TARGET` で宛先を指定して実行する。
+
+```bash
+# 例：2つのFigmaファイルを同時に別々へ描画
+FIG_TARGET=a node dashboard.mjs     # ターゲット a のプラグイン(＝ファイルA)へ
+FIG_TARGET=b node login.mjs         # ターゲット b のプラグイン(＝ファイルB)へ
+
+# mockで検証するときも同様
+MOCK_TARGET=a node mock-figma.mjs
+MOCK_TARGET=b node mock-figma.mjs
+```
+
+- 仕組み：`server.mjs` が target ごとにキュー/待受/相関を分離。JSON本文のルーティング用フィールドは
+  **`_target`**（コマンドのノード指定 `target` と衝突しないよう別名）。`/next?target=…`・`/health?target=…` はクエリで指定。
+- 動作確認済み：target a に AAA、target b に BBB を**同時描画して混線ゼロ**。
+
+---
+
 ## 現状（2026-08-19）
 
 - ✅ **配管は全経路が動作証明済み**（mock経由：ping→図形→グラデ→オートレイアウト部品→画像配置→矢印→export往復 → `tmp/dd-smoke.png`）。

@@ -2,6 +2,7 @@
 import { chromium } from 'playwright';
 
 const BASE = 'http://localhost:3055';
+const TARGET = process.env.MOCK_TARGET || 'default'; // このmockの宛先（複数同時検証なら別名に）
 let scene = { nodes: {}, roots: [] };
 
 function resetScene() { scene = { nodes: {}, roots: [] }; }
@@ -135,12 +136,12 @@ async function renderPng(scale) {
   return buf.toString('base64');
 }
 
-async function post(path, body) { try { await fetch(BASE + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); } catch (e) {} }
+async function post(path, body) { try { await fetch(BASE + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...body, _target: TARGET }) }); } catch (e) {} }
 async function loop() {
-  console.log('[mock] connected to bridge, waiting for commands');
+  console.log('[mock] connected to bridge (target=' + TARGET + '), waiting for commands');
   while (true) {
     let cmd;
-    try { const r = await fetch(BASE + '/next'); if (r.status === 204) continue; cmd = await r.json(); }
+    try { const r = await fetch(BASE + '/next?target=' + encodeURIComponent(TARGET)); if (r.status === 204) continue; cmd = await r.json(); }
     catch (e) { await new Promise((s) => setTimeout(s, 500)); continue; }
     if (!cmd || !cmd.cmd) continue;
     console.log('[mock] recv #' + cmd.id + ' ' + cmd.cmd);
