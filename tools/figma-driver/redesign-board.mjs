@@ -75,16 +75,16 @@ await icon({ parentId: addBtn, name: 'plus', size: 16, color: c.white });
 await text({ parentId: addBtn, characters: '過去の企業を登録', fontName: jp('Bold'), fontSize: 13, fills: c.white });
 await frame({ parentId: after, x: mx, y: 78, width: aW - mx - 24, height: 1, fills: c.line });
 
-// ステータス別サマリー（白基調・色を使わずドットだけで区別）
+// ステータス別サマリー（白カード・絶対配置でラベルと数値の左端を厳密に揃える。色ドットは右上）
 const sums = [['全件', '133', null], ['提案可能', '38', ramp.green[500]], ['商談中', '52', ramp.blue[500]], ['検討中', '43', ramp.amber[500]]];
+const chipW = 150, padX = 18;
 let sx = mx;
 for (const [lb, vl, dot] of sums) {
-  const chip = await frame({ parentId: after, x: sx, y: 96, width: 150, height: 62, cornerRadius: 12, fills: c.surface, strokes: c.border, strokeWeight: 1, layoutMode: 'VERTICAL', itemSpacing: 4, padding: 14 });
-  const lr = await frame({ parentId: chip, layoutMode: 'HORIZONTAL', counterAlign: 'CENTER', itemSpacing: 6, fills: [] });
-  if (dot) await frame({ parentId: lr, width: 8, height: 8, cornerRadius: 999, fills: dot });
-  await text({ parentId: lr, characters: lb, fontName: jp('Medium'), fontSize: 12, fills: c.sub });
-  await text({ parentId: chip, characters: vl, fontName: font('Bold'), fontSize: 22, fills: c.ink });
-  sx += 162;
+  const chip = await frame({ parentId: after, x: sx, y: 96, width: chipW, height: 66, cornerRadius: 12, fills: c.surface, strokes: c.border, strokeWeight: 1 });
+  await text({ parentId: chip, x: padX, y: 16, characters: lb, fontName: jp('Medium'), fontSize: 12, fills: c.sub });
+  await text({ parentId: chip, x: padX, y: 34, characters: vl, fontName: font('Bold'), fontSize: 22, fills: c.ink });
+  if (dot) await frame({ parentId: chip, x: chipW - padX - 8, y: 18, width: 8, height: 8, cornerRadius: 999, fills: dot });
+  sx += chipW + 12;
 }
 
 // テーブルカード
