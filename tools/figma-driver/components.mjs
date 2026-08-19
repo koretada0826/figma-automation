@@ -2,6 +2,13 @@
 // 設計指針は design-knowledge/ を正典とする。
 import { frame, rect, text, ellipse, svg } from './fig.mjs';
 import { c, r, font, jp, shadow } from './tokens.mjs';
+import { iconSvg } from './icons.mjs';
+
+// ラインアイコン（色を焼き込んだSVGをネイティブ配置）
+export async function icon(o) {
+  const s = o.size || 24;
+  return svg({ parentId: o.parentId, x: o.x, y: o.y, width: s, height: s, svg: iconSvg(o.name, o.color || c.ink, o.strokeWidth || 2) });
+}
 
 /* ============ SVGチャート・ヘルパー（本物の円弧/折れ線） ============ */
 // ドーナツ：セグメントを stroke-dasharray でリング上に並べる（-90°=真上始点）
@@ -78,18 +85,21 @@ export async function kpiCard(o) {
   return card;
 }
 
-// サイドバー（ダーク・アクティブのみアクセント塗り）。accent=ブランド色, navFill=地色
+// サイドバー（ダーク・アイコン＋ラベル）。items=[{label,icon}] or 文字列
+// accent=ブランド色, navFill=地色。アクティブは塗り、非アクティブはicon/textを淡色
 export async function sidebar(o) {
-  const items = o.items || [];
+  const items = (o.items || []).map((it) => (typeof it === 'string' ? { label: it, icon: 'check' } : it));
   const accent = o.accent || c.brand;
   const navFill = o.navFill || c.nav;
-  const bar = await frame({ name: 'sidebar', parentId: o.parentId, x: o.x || 0, y: o.y || 0, width: o.width || 96, height: o.height || 720, layoutMode: 'VERTICAL', itemSpacing: 8, pad: [20, 12, 20, 12], counterAlign: 'CENTER', fills: navFill });
-  const lg = await frame({ name: 'logo', parentId: bar, width: 40, height: 40, cornerRadius: 11, layoutMode: 'HORIZONTAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', fills: accent });
+  const bar = await frame({ name: 'sidebar', parentId: o.parentId, x: o.x || 0, y: o.y || 0, width: o.width || 96, height: o.height || 720, layoutMode: 'VERTICAL', itemSpacing: 6, pad: [22, 12, 22, 12], counterAlign: 'CENTER', fills: navFill });
+  const lg = await frame({ name: 'logo', parentId: bar, width: 40, height: 40, cornerRadius: 11, layoutMode: 'HORIZONTAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', fills: accent, effects: shadow.sm });
   await text({ parentId: lg, width: 40, align: 'CENTER', characters: o.logo || 'T', fontName: font('Bold'), fontSize: 18, fills: c.white });
+  const spacer = await frame({ parentId: bar, width: 4, height: 8, fills: [] });
   for (let i = 0; i < items.length; i++) {
     const on = i === (o.active || 0);
-    const it = await frame({ name: 'nav-' + items[i], parentId: bar, width: 64, height: 56, cornerRadius: 12, layoutMode: 'VERTICAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', itemSpacing: 4, fills: on ? accent : navFill });
-    await text({ parentId: it, width: 64, align: 'CENTER', characters: items[i], fontName: jp('Medium'), fontSize: 11, fills: on ? c.white : c.navSub });
+    const it = await frame({ name: 'nav-' + items[i].label, parentId: bar, width: 64, height: 58, cornerRadius: 14, layoutMode: 'VERTICAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', itemSpacing: 5, fills: on ? accent : [] });
+    await icon({ parentId: it, name: items[i].icon || 'check', size: 22, color: on ? c.white : c.navSub, strokeWidth: on ? 2.2 : 1.8 });
+    await text({ parentId: it, width: 64, align: 'CENTER', characters: items[i].label, fontName: jp('Medium'), fontSize: 11, fills: on ? c.white : c.navSub });
   }
   return bar;
 }
@@ -149,8 +159,9 @@ export async function actionBar(o) {
   const h = o.height || 72;
   const barFill = solid ? (o.gradient || { gradient: 'linear', angle: 135, stops: [{ color: accent, pos: 0 }, { color: c.brandActive, pos: 1 }] }) : c.brand050;
   const bar = await frame({ name: 'actionBar', parentId: o.parentId, x: o.x, y: o.y, width: o.width || 620, height: h, cornerRadius: r.lg, layoutMode: 'HORIZONTAL', counterAlign: 'CENTER', paddingH: 20, itemSpacing: 14, fills: barFill, strokes: solid ? null : c.brand100, strokeWeight: solid ? 0 : 1, effects: solid ? shadow.md : null });
-  const icon = await frame({ parentId: bar, width: 36, height: 36, cornerRadius: 9, layoutMode: 'VERTICAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', fills: solid ? c.white : accent });
-  await text({ parentId: icon, width: 36, align: 'CENTER', characters: o.icon || '⌕', fontName: font('Bold'), fontSize: 16, fills: solid ? accent : c.white });
+  const iconBox = await frame({ parentId: bar, width: 40, height: 40, cornerRadius: 10, layoutMode: 'VERTICAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', fills: solid ? c.white : accent });
+  if (o.iconName) await icon({ parentId: iconBox, name: o.iconName, size: 22, color: solid ? accent : c.white });
+  else await text({ parentId: iconBox, width: 40, align: 'CENTER', characters: o.icon || '✓', fontName: font('Bold'), fontSize: 16, fills: solid ? accent : c.white });
   const txt = await frame({ parentId: bar, layoutMode: 'VERTICAL', itemSpacing: 3, fills: null });
   await text({ parentId: txt, characters: o.title || '重複チェック', fontName: jp('Bold'), fontSize: 15, fills: solid ? c.white : c.ink });
   if (o.sub) await text({ parentId: txt, characters: o.sub, fontName: jp('Regular'), fontSize: 12, fills: solid ? '#ffffffcc' : c.sub });
