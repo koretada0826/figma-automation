@@ -78,20 +78,18 @@ async function afterTable(parent, x, y, w, h, cols, rows) {
   const card = await frame({ parentId: parent, x, y, width: w, height: h, cornerRadius: 14, fills: c.surface, strokes: c.border, strokeWeight: 1, effects: shadow.sm, layoutMode: 'VERTICAL', itemSpacing: 8, padding: 18 });
   await table({ parentId: card, columns: cols, rows });
 }
-// 全幅リストテーブル（一覧ページ向け：カードで囲わず、スクロールしやすい）
-// 白い面を敷き、ヘッダーは淡い地＋下ボーダー、行は端まで・均一高さ・行間ディバイダ。
+// 全幅リストテーブル（一覧ページ向け）。カード（角丸/影/外枠）を使わず、
+// フラットな白面にヘッダー下ボーダー＋行ディバイダだけ。端まで伸びてスクロールしやすい。
 async function listTable(parent, x, y, w, cols, rows, rowH = 52) {
-  const totalRows = rows.length;
-  const panelH = 44 + 2 + totalRows * (rowH + 1) + 12;
-  const panel = await frame({ parentId: parent, x, y, width: w, height: panelH, cornerRadius: 10, fills: c.surface, strokes: c.border, strokeWeight: 1, clip: true });
-  const px = 20;
-  // ヘッダー（淡い地＋下ボーダー）
-  const hr = await frame({ parentId: panel, x: 0, y: 0, width: w, height: 44, layoutMode: 'HORIZONTAL', counterAlign: 'CENTER', paddingH: px, fills: ramp.gray[50] });
+  const h = 46 + rows.length * (rowH + 1);
+  await frame({ parentId: parent, x, y, width: w, height: h, fills: c.surface }); // フラット白面（角丸・影・外枠なし）
+  const px = 12;
+  const hr = await frame({ parentId: parent, x, y, width: w, height: 44, layoutMode: 'HORIZONTAL', counterAlign: 'CENTER', paddingH: px, fills: [] });
   for (const col of cols) await text({ parentId: hr, width: col.w, characters: col.label, fontName: jp('Bold'), fontSize: 12, fills: c.sub, align: col.align });
-  await frame({ parentId: panel, x: 0, y: 44, width: w, height: 2, fills: c.border });
-  let ry = 46;
+  await frame({ parentId: parent, x, y: y + 44, width: w, height: 2, fills: c.border }); // ヘッダー下ボーダー
+  let ry = y + 46;
   for (const row of rows) {
-    const rr = await frame({ parentId: panel, x: 0, y: ry, width: w, height: rowH, layoutMode: 'HORIZONTAL', counterAlign: 'CENTER', paddingH: px, fills: [] });
+    const rr = await frame({ parentId: parent, x, y: ry, width: w, height: rowH, layoutMode: 'HORIZONTAL', counterAlign: 'CENTER', paddingH: px, fills: [] });
     for (const col of cols) {
       const cell = row[col.key];
       if (cell && cell.pill) {
@@ -102,10 +100,9 @@ async function listTable(parent, x, y, w, cols, rows, rowH = 52) {
       }
     }
     ry += rowH;
-    await frame({ parentId: panel, x: 0, y: ry, width: w, height: 1, fills: c.line });
+    await frame({ parentId: parent, x, y: ry, width: w, height: 1, fills: c.line }); // 行間ディバイダ
     ry += 1;
   }
-  return panel;
 }
 // フォーム項目（After）
 async function field(parent, x, y, w, label, ph, req) {
@@ -172,7 +169,7 @@ await baArrow(880, Y + 240);
   await statRow({ parentId: s, x: mx, y: 86, w: 148, gap: 14, items: [
     { label: '全件', value: '133' }, { label: '提案可能', value: '38', dot: ramp.green[500] },
     { label: '商談中', value: '52', dot: ramp.blue[500] }, { label: '検討中', value: '43', dot: ramp.amber[500] }] });
-  await listTable(s, mx, 168, aw - mx - 20, [
+  await listTable(s, mx, 168, aw - mx, [
     { key: 'name', label: '企業名', w: 226, align: 'LEFT' }, { key: 'tel', label: '電話番号', w: 150, align: 'LEFT' },
     { key: 'date', label: '商談日', w: 120, align: 'LEFT' }, { key: 'stat', label: 'ステータス', w: 130, align: 'LEFT' },
     { key: 'agency', label: '担当代理店', w: 130, align: 'LEFT' }, { key: 'ok', label: '提案可否', w: 80, align: 'LEFT' }],
@@ -203,7 +200,7 @@ await baArrow(880, Y + 230);
   await field(fc, 432, 16, 160, '初期パスワード', '8文字以上');
   const abt = await frame({ parentId: fc, x: 610, y: 36, width: 100, height: 40, cornerRadius: 9, fills: V, layoutMode: 'HORIZONTAL', primaryAlign: 'CENTER', counterAlign: 'CENTER' });
   await text({ parentId: abt, width: 100, align: 'CENTER', characters: '＋ 追加', fontName: jp('Bold'), fontSize: 12, fills: c.white });
-  await listTable(s, mx, 192, aw - mx - 20, [
+  await listTable(s, mx, 192, aw - mx, [
     { key: 'name', label: '名前', w: 260, align: 'LEFT' }, { key: 'id', label: 'ログインID', w: 220, align: 'LEFT' },
     { key: 'role', label: '権限', w: 176, align: 'LEFT' }, { key: 'op', label: '操作', w: 180, align: 'LEFT' }],
     [{ name: '運営本部', id: 'admin', role: { pill: '運営本部', tone: 'brand' }, op: 'パスワード再設定' },
@@ -225,7 +222,7 @@ await baArrow(880, Y + 210);
 { const aw = 1000, ah = 380;
   await tag(root, 1020, Y - 4, 'AFTER', true);
   const { s, mx } = await afterShell(1020, Y + 30, aw, ah, 2, '提案予定の一覧', '全215件（営業権は発生しません）');
-  await listTable(s, mx, 86, aw - mx - 20, [
+  await listTable(s, mx, 86, aw - mx, [
     { key: 'name', label: '企業名', w: 340, align: 'LEFT' }, { key: 'tel', label: '電話番号', w: 180, align: 'LEFT' },
     { key: 'agency', label: '登録した代理店', w: 186, align: 'LEFT' }, { key: 'date', label: '登録日', w: 130, align: 'LEFT' }],
     [{ name: 'ジャパンプロパティリンク', tel: '011-522-6439', agency: 'TELEMO直営', date: '2026-08-19' },
