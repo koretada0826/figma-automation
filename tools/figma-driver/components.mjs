@@ -135,6 +135,23 @@ export async function avatar(o) {
   return a;
 }
 
+// サマリーチップ（ラベルと数値を左端で厳密に揃える／色ドットは右上）
+// statRow で等間隔に並べると配置が保証される。
+export async function statChip(o) {
+  const w = o.w || 152, h = o.h || 68, pad = 16;
+  const chip = await frame({ name: 'statChip', parentId: o.parentId, x: o.x, y: o.y, width: w, height: h, cornerRadius: 12, fills: c.surface, strokes: c.border, strokeWeight: 1 });
+  await text({ parentId: chip, x: pad, y: 15, characters: o.label, fontName: jp('Medium'), fontSize: 12, fills: c.sub });
+  await text({ parentId: chip, x: pad, y: 33, characters: String(o.value), fontName: font('Bold'), fontSize: 22, fills: o.valueColor || c.ink });
+  if (o.dot) await ellipse({ parentId: chip, x: w - pad - 8, y: 17, width: 8, height: 8, fills: o.dot });
+  return chip;
+}
+// 複数チップを等間隔で横並び（オートレイアウトで gap を保証）
+export async function statRow(o) {
+  const row = await frame({ name: 'statRow', parentId: o.parentId, x: o.x, y: o.y, layoutMode: 'HORIZONTAL', itemSpacing: o.gap || 14, fills: [] });
+  for (const it of o.items) await statChip({ parentId: row, w: o.w, value: it.value, label: it.label, dot: it.dot, valueColor: it.valueColor });
+  return row;
+}
+
 // 見出し（タイトル＋任意の淡いサブ/リンク）
 export async function sectionHeader(o) {
   const h = await frame({ name: 'header', parentId: o.parentId, x: o.x, y: o.y, layoutMode: 'HORIZONTAL', counterAlign: 'CENTER', itemSpacing: 10, fills: null });
