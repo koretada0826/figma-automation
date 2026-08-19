@@ -95,18 +95,17 @@ export async function sidebar(o) {
   const navFill = o.navFill || c.nav;
   const activeBg = o.activeBg || ramp.gray[800];
   const width = o.width || 92;
-  const bar = await frame({ name: 'sidebar', parentId: o.parentId, x: o.x || 0, y: o.y || 0, width, height: o.height || 720, layoutMode: 'VERTICAL', itemSpacing: 4, pad: [22, 10, 22, 10], counterAlign: 'CENTER', fills: navFill });
+  // コンパクトに（短い画面でも全項目が収まる高さ）
+  const bar = await frame({ name: 'sidebar', parentId: o.parentId, x: o.x || 0, y: o.y || 0, width, height: o.height || 720, layoutMode: 'VERTICAL', itemSpacing: 4, pad: [16, 8, 16, 8], counterAlign: 'CENTER', fills: navFill });
   // ロゴ
-  const lg = await frame({ name: 'logo', parentId: bar, width: 38, height: 38, cornerRadius: 10, layoutMode: 'HORIZONTAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', fills: accent });
-  await text({ parentId: lg, width: 38, align: 'CENTER', characters: o.logo || 'T', fontName: font('Bold'), fontSize: 17, fills: c.white });
-  // ロゴとナビの区切り（余白＋細い線）
-  await frame({ name: 'gap', parentId: bar, width: 4, height: 10, fills: [] });
+  const lg = await frame({ name: 'logo', parentId: bar, width: 36, height: 36, cornerRadius: 10, layoutMode: 'HORIZONTAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', fills: accent });
+  await text({ parentId: lg, width: 36, align: 'CENTER', characters: o.logo || 'T', fontName: font('Bold'), fontSize: 17, fills: c.white });
+  // ロゴとナビの区切り線
   await frame({ name: 'divider', parentId: bar, width: width - 28, height: 1, fills: ramp.gray[700] });
-  await frame({ name: 'gap', parentId: bar, width: 4, height: 10, fills: [] });
   for (let i = 0; i < items.length; i++) {
     const on = i === (o.active || 0);
-    const it = await frame({ name: 'nav-' + items[i].label, parentId: bar, width: width - 16, height: 60, cornerRadius: 12, layoutMode: 'VERTICAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', itemSpacing: 6, fills: on ? activeBg : [] });
-    await icon({ parentId: it, name: items[i].icon || 'check', size: 21, color: on ? accent : ramp.gray[400], strokeWidth: on ? 2.2 : 1.8 });
+    const it = await frame({ name: 'nav-' + items[i].label, parentId: bar, width: width - 16, height: 52, cornerRadius: 12, layoutMode: 'VERTICAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', itemSpacing: 5, fills: on ? activeBg : [] });
+    await icon({ parentId: it, name: items[i].icon || 'check', size: 20, color: on ? accent : ramp.gray[400], strokeWidth: on ? 2.2 : 1.8 });
     await text({ parentId: it, width: width - 16, align: 'CENTER', characters: items[i].label, fontName: jp(on ? 'Bold' : 'Medium'), fontSize: 11, fills: on ? c.white : ramp.gray[400] });
   }
   return bar;
