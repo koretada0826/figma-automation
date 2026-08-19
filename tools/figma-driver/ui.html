@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><style>
+  body{font-family:system-ui,sans-serif;margin:0;padding:14px;color:#111827}
+  h3{margin:0 0 8px;font-size:14px}
+  .row{display:flex;align-items:center;gap:8px;font-size:12px;margin-top:6px}
+  .dot{width:9px;height:9px;border-radius:50%;background:#9ca3af}
+  .dot.on{background:#16a34a}.dot.err{background:#dc2626}
+  #log{margin-top:10px;font-size:11px;color:#6b7280;max-height:70px;overflow:auto;line-height:1.5}
+  code{background:#f3f4f6;padding:1px 4px;border-radius:4px}
+</style></head>
+<body>
+  <h3>Design Driver</h3>
+  <div class="row"><span class="dot" id="dot"></span><span id="status">ブリッジ接続待ち…</span></div>
+  <div class="row">bridge: <code>http://localhost:3055</code></div>
+  <div id="log"></div>
+<script>
+const BASE = 'http://localhost:3055';
+const pending = {}; // id -> true
+function log(m){ const el=document.getElementById('log'); el.innerHTML = (m+'<br>'+el.innerHTML).slice(0,1200); }
+function setStatus(s, cls){ document.getElementById('status').textContent = s; const d=document.getElementById('dot'); d.className='dot'+(cls?' '+cls:''); }
+
+// main(プラグイン) → UI の結果を受けてサーバへ返す
+function bytesToBase64(bytes){ let bin=''; const chunk=0x8000; for(let i=0;i<bytes.length;i+=chunk){ bin+=String.fromCharCode.apply(null, bytes.subarray(i,i+chunk)); } return btoa(bin); }
+
+onmessage = (e) => {
+  const msg = e.data.pluginMessage; if(!msg) return;
+  if (msg.type === 'result') {
+    fetch(BASE+'/result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(msg)}).catch(()=>{});
+    log((msg.ok?'✓':'✗')+' #'+msg.id+(msg.ok?'':' '+msg.error));
+  } else if (msg.type === 'exported') {
+    const b64 = bytesToBase64(msg.bytes);
+    fetch(BASE+'/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:msg.id, path:msg.path, base64:b64})}).catch(()=>{});
+    log('⤓ #'+msg.id+' export '+(msg.path||''));
+  }
+};
+
+async function handle(cmd){
+  if (cmd.cmd === 'placeImage') {
+    try {
+      const r = await fetch(cmd.url); const buf = await r.arrayBuffer();
+      parent.postMessage({pluginMessage:{type:'placeImage', id:cmd.id, bytes:new Uint8Array(buf), command:cmd}}, '*');
+    } catch(err) {
+      fetch(BASE+'/result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:cmd.id,ok:false,error:'image fetch failed: '+err})}).catch(()=>{});
+    }
+  } else if (cmd.cmd === 'export') {
+    parent.postMessage({pluginMessage:{type:'export', id:cmd.id, command:cmd}}, '*');
+  } else {
+    parent.postMessage({pluginMessage:{type:'exec', id:cmd.id, command:cmd}}, '*');
+  }
+}
+
+async function loop(){
+  setStatus('接続済み。命令待機中', 'on');
+  while(true){
+    try{
+      const r = await fetch(BASE+'/next');
+      if (r.status === 204) continue;
+      const cmd = await r.json();
+      if (cmd && cmd.cmd){ log('→ #'+cmd.id+' '+cmd.cmd); await handle(cmd); }
+    }catch(e){
+      setStatus('ブリッジ未起動（再試行中）', 'err');
+      await new Promise(res=>setTimeout(res,800));
+      setStatus('接続済み。命令待機中', 'on');
+    }
+  }
+}
+loop();
+</script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>TELEMO — Before (admin, dummy data)</title>
+<style>
+  /* 現状UIの再現（紺ヘッダー＋素朴な白テーブル）。データはすべてダミー。 */
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;background:#f8fafc;color:#0f172a;padding:36px}
+  .frame{width:1080px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin:0 auto 50px;box-shadow:0 14px 40px rgba(16,24,40,.1)}
+  .navbar{background:#1e3a5f;color:#fff;padding:14px 22px;display:flex;justify-content:space-between;align-items:center}
+  .navbar .t{font-weight:700;font-size:16px}
+  .navbar .u{font-size:12px;opacity:.85;display:flex;gap:10px;align-items:center}
+  .navbar .lo{background:rgba(255,255,255,.2);padding:4px 10px;border-radius:4px;font-size:11px}
+  .wrap{padding:22px}
+  .crumbs{font-size:12px;color:#1e3a5f;margin-bottom:12px}
+  .crumbs a{color:#1e3a5f;text-decoration:underline;margin-right:14px}
+  .h1{font-size:18px;font-weight:700;color:#1e3a5f;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+  .btn{background:#1e3a5f;color:#fff;padding:8px 14px;border-radius:6px;font-size:12px;font-weight:500}
+  .desc{font-size:12px;color:#64748b;margin-bottom:16px}
+  .panel{background:#fff;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th{background:#f1f5f9;text-align:left;padding:8px 12px;color:#475569;font-weight:600}
+  td{padding:9px 12px;border-top:1px solid #eef2f6;color:#334155}
+  .sel{border:1px solid #cbd5e1;border-radius:4px;padding:3px 6px;font-size:11px;color:#334155;display:inline-block}
+  .badge{padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700}
+  .b-ng{background:#fee2e2;color:#b91c1c}.b-ok{background:#dcfce7;color:#15803d}.b-h{background:#fef9c3;color:#a16207}
+  .lk{color:#1e3a5f;text-decoration:underline;font-size:12px}
+  .lk.d{color:#dc2626}
+  .form{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:18px;margin-bottom:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .form .fld label{display:block;font-size:12px;font-weight:600;margin-bottom:4px}
+  .form .fld input,.form .fld .in{border:1px solid #cbd5e1;border-radius:4px;padding:7px 9px;font-size:12px;color:#94a3b8;width:100%;display:block}
+  .form .full{grid-column:1/-1}
+</style>
+</head>
+<body>
+
+<!-- ⑥ 運営管理 /admin -->
+<div class="frame" id="b-admin">
+  <div class="navbar"><div class="t">営業重複管理ツール</div><div class="u">運営本部（admin）<span class="lo">ログアウト</span></div></div>
+  <div class="wrap">
+    <div class="crumbs"><a>代理店アカウント管理 →</a><a>提案予定の一覧 →</a></div>
+    <div class="h1">運営管理画面（全128件）<span class="btn">＋ 過去の企業を登録</span></div>
+    <div class="desc">運営開始前から進んでいた企業は「＋ 過去の企業を登録」から、代理店を選んで登録できます。下の一覧では各企業のステータス・納品フラグの変更や、編集・削除ができます。</div>
+    <div class="panel">
+      <table>
+        <tr><th>企業名</th><th>電話番号</th><th>代表者</th><th>商談日</th><th>ステータス</th><th>納品フラグ</th><th>担当代理店</th><th>提案可否</th><th>操作</th></tr>
+        <tr><td>サンプル商事</td><td>03-1111-2222</td><td>ヤマダ</td><td>2026/06/12</td><td><span class="sel">成約 ▾</span></td><td><span class="sel">制作中 ▾</span></td><td>代理店A</td><td><span class="badge b-ng">NG</span></td><td><span class="lk">編集</span> <span class="lk d">削除</span></td></tr>
+        <tr><td>ダミー工業</td><td>06-3333-4444</td><td>スズキ</td><td>2026/07/01</td><td><span class="sel">商談 ▾</span></td><td><span class="sel">未着手 ▾</span></td><td>代理店B</td><td><span class="badge b-ng">NG</span></td><td><span class="lk">編集</span> <span class="lk d">削除</span></td></tr>
+        <tr><td>テスト物産</td><td>052-777-8888</td><td>タナカ</td><td>2026/04/20</td><td><span class="sel">失注 ▾</span></td><td><span class="sel">未着手 ▾</span></td><td>代理店C</td><td><span class="badge b-ok">OK</span></td><td><span class="lk">編集</span> <span class="lk d">削除</span></td></tr>
+        <tr><td>見本フーズ</td><td>03-5555-6666</td><td>サトウ</td><td>2026/05/05</td><td><span class="sel">検討中 ▾</span></td><td><span class="sel">未着手 ▾</span></td><td>代理店A</td><td><span class="badge b-h">運営確認</span></td><td><span class="lk">編集</span> <span class="lk d">削除</span></td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ⑦ 代理店アカウント管理 /admin/agencies -->
+<div class="frame" id="b-agencies">
+  <div class="navbar"><div class="t">営業重複管理ツール</div><div class="u">運営本部（admin）<span class="lo">ログアウト</span></div></div>
+  <div class="wrap">
+    <div class="crumbs"><a>← 企業一覧へ戻る</a></div>
+    <div class="h1">代理店アカウント管理（全9件）</div>
+    <div class="form">
+      <div class="fld"><label>名前</label><div class="in">株式会社〇〇代理店</div></div>
+      <div class="fld"><label>ログインID</label><div class="in">agency09</div></div>
+      <div class="fld"><label>初期パスワード</label><div class="in">8文字以上を推奨</div></div>
+      <div class="fld"><label>権限</label><div class="in">販売代理店（agency） ▾</div></div>
+      <div class="full"><span class="btn">アカウントを追加</span></div>
+    </div>
+    <div class="panel">
+      <table>
+        <tr><th>名前</th><th>ログインID</th><th>権限</th><th>操作</th></tr>
+        <tr><td>サンプル代理店A</td><td>agency01</td><td>販売代理店</td><td><span class="lk">パスワード再設定</span> <span class="lk d">削除</span></td></tr>
+        <tr><td>サンプル代理店B</td><td>agency02</td><td>販売代理店</td><td><span class="lk">パスワード再設定</span> <span class="lk d">削除</span></td></tr>
+        <tr><td>運営本部</td><td>admin</td><td>運営本部</td><td><span class="lk">パスワード再設定</span></td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ⑧ 提案予定の一覧 /admin/plans -->
+<div class="frame" id="b-adminplans">
+  <div class="navbar"><div class="t">営業重複管理ツール</div><div class="u">運営本部（admin）<span class="lo">ログアウト</span></div></div>
+  <div class="wrap">
+    <div class="crumbs"><a>← 運営管理画面へ戻る</a><a>代理店アカウント管理 →</a></div>
+    <div class="h1">提案予定の一覧（全24件）</div>
+    <div class="desc">各代理店が「これから提案する予定」として登録した企業の一覧です（商談ではないので営業権は発生しません）。</div>
+    <div class="panel">
+      <table>
+        <tr><th>企業名</th><th>電話番号</th><th>登録した代理店</th><th>登録日</th></tr>
+        <tr><td>サンプル商事</td><td>03-1111-2222</td><td>代理店A</td><td>2026/08/12</td></tr>
+        <tr><td>ダミー物産</td><td>06-3333-4444</td><td>代理店B</td><td>2026/08/11</td></tr>
+        <tr><td>見本テック</td><td>03-5555-6666</td><td>代理店A</td><td>2026/08/10</td></tr>
+        <tr><td>テスト工業</td><td>052-777-8888</td><td>代理店C</td><td>2026/08/09</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

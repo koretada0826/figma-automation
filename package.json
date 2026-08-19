@@ -1,0 +1,17 @@
+{
+  "name": "figma-jidouka",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Figma版Playwright — 外部コマンドでFigmaを駆動し編集可能なネイティブレイヤーを自動生成するツール",
+  "scripts": {
+    "bridge": "node tools/figma-driver/server.mjs",
+    "img": "python3 -m http.server 8123",
+    "mock": "node tools/figma-driver/mock-figma.mjs",
+    "smoke": "node tools/figma-driver/smoke.mjs",
+    "health": "node tools/figma-driver/fig.mjs health"
+  },
+  "dependencies": {
+    "playwright": "^1.47.0"
+  }
+}

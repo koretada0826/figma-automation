@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TELEMO — After screens (refined BtoB SaaS)</title>
+<style>
+  :root{
+    /* Brand — blue only */
+    --brand:#2563eb; --brand-hover:#1d4ed8; --brand-050:#eff6ff; --brand-100:#dbeafe;
+    /* Neutral */
+    --bg:#f8fafc; --surface:#ffffff; --border:#e5e7eb; --border-soft:#eef1f5;
+    --ink:#111827; --sub:#6b7280; --faint:#9ca3af;
+    /* Semantic (meaning only) */
+    --ok:#16a34a; --ok-bg:#f0fdf4; --ok-bd:#bbf7d0;
+    --warn:#ea580c; --warn-bg:#fff7ed; --warn-bd:#fed7aa;
+    --ng:#dc2626; --ng-bg:#fef2f2; --ng-bd:#fecaca;
+    /* Sidebar */
+    --nav:#0f172a; --nav-2:#0b1220;
+    --font:"Inter","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,-apple-system,sans-serif;
+    --sh:0 1px 2px rgba(17,24,39,.04);
+    --sh-frame:0 6px 24px rgba(17,24,39,.10),0 1px 2px rgba(17,24,39,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);background:#eaedf2;color:var(--ink);-webkit-font-smoothing:antialiased;padding:40px;font-size:14px;line-height:1.5}
+  svg{display:block}
+  .icon{width:20px;height:20px;stroke:currentColor;stroke-width:1.75;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .icon.sm{width:16px;height:16px}
+  .flabel{max-width:1080px;margin:0 auto 8px;font-weight:600;color:#374151;font-size:13px}
+
+  .frame{width:1080px;height:720px;background:var(--surface);border-radius:16px;overflow:hidden;
+    border:1px solid var(--border);box-shadow:var(--sh-frame);margin:0 auto 56px;display:flex;position:relative}
+
+  /* ============ Sidebar ============ */
+  .side{width:96px;background:var(--nav);display:flex;flex-direction:column;align-items:center;padding:16px 0;flex-shrink:0}
+  .side .logo{width:36px;height:36px;border-radius:9px;background:var(--brand);display:grid;place-items:center;color:#fff;font-weight:700;font-size:17px;margin-bottom:20px}
+  .nav{width:100%;display:flex;flex-direction:column;gap:2px;padding:0 12px}
+  .nav a{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 0;border-radius:9px;color:#94a3b8;font-size:10px;font-weight:500;text-decoration:none}
+  .nav a .icon{color:#94a3b8;width:19px;height:19px}
+  .nav a.on{background:var(--brand);color:#fff}
+  .nav a.on .icon{color:#fff}
+  .side .foot{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:6px;color:#64748b;font-size:9px}
+  .side .foot .pa{width:32px;height:32px;border-radius:50%;background:#334155;color:#cbd5e1;display:grid;place-items:center;font-size:11px;font-weight:600}
+
+  /* ============ Main ============ */
+  .main{flex:1;background:var(--bg);display:flex;flex-direction:column;min-width:0}
+  .top{height:60px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0}
+  .top .h{font-size:18px;font-weight:700;letter-spacing:-.01em}
+  .top .h .sub{display:block;font-size:12px;font-weight:400;color:var(--sub);margin-top:1px}
+  .top .r{display:flex;align-items:center;gap:14px;color:var(--sub);font-size:13px}
+  .top .bell{width:34px;height:34px;border-radius:8px;border:1px solid var(--border);display:grid;place-items:center;color:var(--sub)}
+  .av{width:32px;height:32px;border-radius:50%;background:#e5e7eb;color:#6b7280;display:grid;place-items:center;font-size:12px;font-weight:600}
+  .body{padding:24px;display:flex;flex-direction:column;gap:24px;overflow:hidden}
+
+  .hello{font-size:22px;font-weight:700;letter-spacing:-.01em}
+  .hello small{display:block;font-weight:400;color:var(--sub);font-size:13px;margin-top:4px}
+
+  /* KPI cards — number first, icon weak neutral, no gradients */
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--sh)}
+  .kpi .head{display:flex;align-items:flex-start;justify-content:space-between}
+  .kpi .name{font-size:13px;color:var(--sub);font-weight:500}
+  .kpi .ic{width:30px;height:30px;border-radius:8px;background:#f3f4f6;color:#9ca3af;display:grid;place-items:center}
+  .kpi .ic .icon{width:17px;height:17px}
+  .kpi .num{font-size:34px;font-weight:700;line-height:1;letter-spacing:-.02em;margin-top:12px}
+  .kpi .foot{display:flex;align-items:center;gap:8px;margin-top:8px}
+  .delta{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:600}
+  .delta.up{color:var(--ok)} .delta.flat{color:var(--sub)}
+  .kpi .cap{font-size:12px;color:var(--faint)}
+  .spark{width:100%;height:26px;margin-top:12px;overflow:visible}
+
+  /* CTA — primary vs secondary hierarchy */
+  .cta-row{display:grid;grid-template-columns:1.3fr 1fr;gap:16px}
+  .cta{border-radius:12px;padding:18px 20px;display:flex;align-items:center;gap:14px;text-decoration:none}
+  .cta.primary{background:var(--brand);color:#fff}
+  .cta.primary .ci{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.16);display:grid;place-items:center;flex-shrink:0}
+  .cta.secondary{background:var(--surface);border:1px solid var(--border);color:var(--ink);box-shadow:var(--sh)}
+  .cta.secondary .ci{width:40px;height:40px;border-radius:10px;background:#f3f4f6;color:var(--sub);display:grid;place-items:center;flex-shrink:0}
+  .cta .k{font-size:15px;font-weight:600}
+  .cta .d{font-size:12.5px;margin-top:2px}
+  .cta.primary .d{color:#dbeafe} .cta.secondary .d{color:var(--sub)}
+  .cta .arrow{margin-left:auto;opacity:.85}
+
+  /* Cards / tables */
+  .split{display:grid;grid-template-columns:1.7fr 1fr;gap:16px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--sh)}
+  .card .ch{padding:14px 18px;font-size:15px;font-weight:600;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between}
+  .card .ch .link{color:var(--brand);font-weight:500;font-size:13px;text-decoration:none}
+  .card .ch .count{color:var(--faint);font-weight:400;font-size:12px}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;padding:10px 18px;font-size:12px;font-weight:500;color:var(--faint);background:var(--surface);border-bottom:1px solid var(--border-soft)}
+  td{padding:13px 18px;border-top:1px solid var(--border-soft);color:#374151;font-size:13.5px}
+  .co{display:flex;align-items:center;gap:10px}
+  .co .fav{width:28px;height:28px;border-radius:7px;background:#f1f5f9;color:#64748b;display:grid;place-items:center;font-size:11px;font-weight:600;flex-shrink:0}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid}
+  .p-ok{color:var(--ok);background:var(--ok-bg);border-color:var(--ok-bd)}
+  .p-warn{color:var(--warn);background:var(--warn-bg);border-color:var(--warn-bd)}
+  .p-ng{color:var(--ng);background:var(--ng-bg);border-color:var(--ng-bd)}
+  .p-neutral{color:var(--sub);background:#f3f4f6;border-color:var(--border)}
+  .p-brand{color:var(--brand);background:var(--brand-050);border-color:var(--brand-100)}
+  .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+  .muted{color:var(--sub)} .faint{color:var(--faint)}
+
+  /* Donut — status meaning, muted */
+  .viz{padding:18px}
+  .viz .t{font-size:14px;font-weight:600;margin-bottom:16px}
+  .donut{width:124px;height:124px;border-radius:50%;margin:4px auto 0;
+    background:conic-gradient(var(--ok) 0 33%,#cbd5e1 33% 100%);display:grid;place-items:center;position:relative}
+  .donut::before{content:"";position:absolute;width:84px;height:84px;border-radius:50%;background:#fff}
+  .donut .c{position:relative;text-align:center}.donut .c b{font-size:22px;font-weight:700}.donut .c span{font-size:11px;color:var(--sub);display:block}
+  .leg{display:flex;flex-direction:column;gap:8px;margin-top:16px;font-size:12px;color:var(--sub)}
+  .leg div{display:flex;align-items:center;gap:8px}.leg i{width:9px;height:9px;border-radius:2px;display:block}.leg b{margin-left:auto;color:var(--ink)}
+
+  /* Distribution bar (admin) */
+  .distbar{display:flex;height:10px;border-radius:5px;overflow:hidden;margin:4px 0}
+  .distbar i{display:block;height:100%}
+  .distlegend{display:flex;gap:18px;font-size:12px;color:var(--sub);margin-top:10px}
+  .distlegend div{display:flex;align-items:center;gap:6px}.distlegend b{color:var(--ink)}.distlegend i{width:9px;height:9px;border-radius:2px}
+
+  /* Forms */
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:12.5px;font-weight:500;color:#374151;margin-bottom:6px}
+  .inp{width:100%;border:1px solid var(--border);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--faint);background:#fff;display:flex;align-items:center;gap:8px}
+  .inp.filled{color:var(--ink)}
+  .inp.focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-050)}
+  .inp .ii{color:var(--faint)}
+  .btn{display:inline-flex;align-items:center;gap:8px;justify-content:center;background:var(--brand);color:#fff;font-weight:600;font-size:14px;padding:11px 18px;border-radius:9px}
+  .btn.sec{background:#fff;color:var(--ink);border:1px solid var(--border)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+  .banner{border-radius:10px;padding:13px 15px;font-size:13px;display:flex;gap:11px;align-items:flex-start;line-height:1.55}
+  .b-info{background:#f8fafc;border:1px solid var(--border);color:#374151}
+  .b-warn{background:var(--warn-bg);border:1px solid var(--warn-bd);color:#9a3412}
+  .b-note{background:var(--brand-050);border:1px solid var(--brand-100);color:#1e40af}
+  .banner .bi{flex-shrink:0;margin-top:1px;color:var(--faint)}
+  .banner.b-warn .bi{color:var(--warn)} .banner.b-note .bi{color:var(--brand)}
+
+  /* ============ Login ============ */
+  .auth{display:flex;width:100%}
+  .auth .l{flex:1;position:relative;overflow:hidden;color:#fff;padding:48px;display:flex;flex-direction:column;justify-content:space-between;
+    background:linear-gradient(160deg,#1e3a8a,#1d4ed8)}
+  .auth .l .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:40px 40px;mask-image:radial-gradient(500px 380px at 26% 34%,#000,transparent 78%)}
+  .auth .l>*{position:relative;z-index:1}
+  .auth .l .brand{display:flex;align-items:center;gap:11px;font-weight:700;font-size:18px}
+  .auth .l .brand .lg{width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.14);display:grid;place-items:center}
+  .auth .l h2{font-size:30px;font-weight:700;line-height:1.35;margin-top:26px;letter-spacing:-.01em}
+  .auth .l p{font-size:14px;color:#c7d7fb;margin-top:14px;max-width:320px;line-height:1.65}
+  .auth .l .feats{display:flex;gap:10px;margin-top:24px}
+  .auth .l .feats span{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:8px 12px;font-size:12px}
+  .auth .l .quote{font-size:12.5px;color:#c7d7fb;border-left:2px solid rgba(255,255,255,.4);padding-left:12px;line-height:1.6}
+  .auth .r{flex:1;background:#fff;padding:56px 52px;display:flex;flex-direction:column;justify-content:center}
+  .auth .r .lg{width:44px;height:44px;border-radius:10px;background:var(--brand);display:grid;place-items:center;color:#fff;font-weight:700;margin-bottom:22px}
+  .auth .r h3{font-size:22px;font-weight:700;letter-spacing:-.01em}
+  .auth .r .sub{color:var(--sub);font-size:13px;margin:5px 0 26px}
+
+  /* ============ Verdict ============ */
+  .verdict{border-radius:12px;padding:20px 22px;display:flex;gap:18px;align-items:center;border:1px solid;background:var(--ng-bg);border-color:var(--ng-bd)}
+  .signal{width:44px;height:104px;border-radius:11px;background:#1f2937;display:flex;flex-direction:column;align-items:center;justify-content:space-around;padding:8px 0;flex-shrink:0}
+  .signal i{width:18px;height:18px;border-radius:50%;background:#374151;display:block}
+  .signal i.r{background:var(--ng);box-shadow:0 0 10px rgba(220,38,38,.6)}
+  .verdict .vt{font-size:12px;font-weight:700;padding:4px 11px;border-radius:999px;color:#fff;background:var(--ng);display:inline-flex;align-items:center;gap:6px}
+  .verdict h4{font-size:18px;font-weight:700;color:#991b1b;margin:10px 0 4px;letter-spacing:-.01em}
+  .verdict p{font-size:13px;color:#b91c1c}
+  .search-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+</style>
+</head>
+<body>
+
+<!-- 1 LOGIN -->
+<div class="flabel">① ログイン /</div>
+<div class="frame" id="s-login">
+  <div class="auth">
+    <div class="l">
+      <span class="grid"></span>
+      <div>
+        <div class="brand"><span class="lg"><svg class="icon" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span> TELEMO</div>
+        <h2>二重営業を、<br>ワンチェックで防ぐ。</h2>
+        <p>企業へアプローチする前に検索。OK / NG / 運営確認 が信号機で即座に分かる、営業前チェック。</p>
+        <div class="feats">
+          <span><svg class="icon sm" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="m9 12 2 2 4-4"/></svg> 情報保護設計</span>
+          <span><svg class="icon sm" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg> 即時判定</span>
+        </div>
+      </div>
+      <div class="quote">「営業前の1チェックで、代理店間のバッティングがほぼゼロに。」<br>— 導入企業 営業本部</div>
+    </div>
+    <div class="r">
+      <div class="lg"><svg class="icon" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
+      <h3>おかえりなさい</h3>
+      <div class="sub">アカウントにログイン</div>
+      <div class="field"><label>ログインID</label><div class="inp filled focus"><svg class="icon sm ii" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg> agency01</div></div>
+      <div class="field"><label>パスワード</label><div class="inp"><svg class="icon sm ii" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> ••••••••</div></div>
+      <div class="btn" style="margin-top:8px;padding:12px">ログイン <svg class="icon sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+    </div>
+  </div>
+</div>
+
+<!-- 2 DASHBOARD -->
+<div class="flabel">② ダッシュボード /dashboard</div>
+<div class="frame" id="s-dash">
+  <div class="side">
+    <div class="logo">T</div>
+    <div class="nav">
+      <a class="on"><svg class="icon" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>ホーム</a>
+      <a><svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>チェック</a>
+      <a><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M9 21v-4h6v4"/></svg>企業</a>
+      <a><svg class="icon" viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h4"/></svg>予定</a>
+    </div>
+    <div class="foot"><div class="pa">A</div>代理店A</div>
+  </div>
+  <div class="main">
+    <div class="top"><div class="h">ダッシュボード<span class="sub">2026年8月18日 月曜日</span></div><div class="r"><div class="bell"><svg class="icon sm" viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7"/><path d="M10 21a2 2 0 0 0 4 0"/></svg></div>サンプル代理店A<div class="av">A</div></div></div>
+    <div class="body">
+      <div class="hello">こんにちは、代理店Aさん<small>営業の前に、まず重複チェックをしましょう。</small></div>
+      <div class="kpis">
+        <div class="kpi"><div class="head"><span class="name">登録企業</span><span class="ic"><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M9 21v-4h6v4"/></svg></span></div><div class="num">3</div><div class="foot"><span class="delta up"><svg class="icon sm" viewBox="0 0 24 24"><path d="M5 15l7-7 7 7"/></svg>+12%</span><span class="cap">先月比</span></div><svg class="spark" viewBox="0 0 120 26" preserveAspectRatio="none"><polyline points="0,20 20,17 40,18 60,11 80,13 100,7 120,6" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="kpi"><div class="head"><span class="name">成約</span><span class="ic"><svg class="icon" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></svg></span></div><div class="num">1</div><div class="foot"><span class="delta flat">±0</span><span class="cap">先月比</span></div><svg class="spark" viewBox="0 0 120 26" preserveAspectRatio="none"><polyline points="0,18 20,19 40,17 60,18 80,16 100,17 120,15" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="kpi"><div class="head"><span class="name">提案予定</span><span class="ic"><svg class="icon" viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1"/></svg></span></div><div class="num">2</div><div class="foot"><span class="delta up"><svg class="icon sm" viewBox="0 0 24 24"><path d="M5 15l7-7 7 7"/></svg>+2</span><span class="cap">今週</span></div><svg class="spark" viewBox="0 0 120 26" preserveAspectRatio="none"><polyline points="0,17 20,18 40,13 60,15 80,10 100,12 120,8" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+      <div class="cta-row">
+        <a class="cta primary"><div class="ci"><svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div><div><div class="k">重複チェック</div><div class="d">営業前に他社と被っていないか確認</div></div><svg class="icon arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a class="cta secondary"><div class="ci"><svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div><div><div class="k">商談を登録</div><div class="d">商談した企業を台帳へ</div></div></a>
+      </div>
+      <div class="split">
+        <div class="card">
+          <div class="ch">登録企業 <a class="link">すべて見る</a></div>
+          <table>
+            <tr><th>企業名</th><th>商談日</th><th>ステータス</th></tr>
+            <tr><td><div class="co"><span class="fav">テ</span>テレモ</div></td><td>2026/06/12</td><td><span class="pill p-ok">成約</span></td></tr>
+            <tr><td><div class="co"><span class="fav">ウ</span>ウチダ</div></td><td>2026/05/30</td><td><span class="pill p-neutral">商談</span></td></tr>
+            <tr><td><div class="co"><span class="fav">ヤ</span>ヤマト</div></td><td>2026/07/01</td><td><span class="pill p-neutral">検討中</span></td></tr>
+          </table>
+        </div>
+        <div class="card viz">
+          <div class="t">ステータス構成</div>
+          <div class="donut"><div class="c"><b>3</b><span>社</span></div></div>
+          <div class="leg">
+            <div><i style="background:var(--ok)"></i>成約<b>1</b></div>
+            <div><i style="background:#cbd5e1"></i>商談・検討<b>2</b></div>
+            <div><i style="background:#eef1f5"></i>失注<b>0</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3 CHECK -->
+<div class="flabel">③ 重複チェック /check</div>
+<div class="frame" id="s-check">
+  <div class="side">
+    <div class="logo">T</div>
+    <div class="nav">
+      <a><svg class="icon" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>ホーム</a>
+      <a class="on"><svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>チェック</a>
+      <a><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M9 21v-4h6v4"/></svg>企業</a>
+      <a><svg class="icon" viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1"/></svg>予定</a>
+    </div>
+    <div class="foot"><div class="pa">A</div>代理店A</div>
+  </div>
+  <div class="main">
+    <div class="top"><div class="h">重複チェック<span class="sub">アプローチ前の営業権チェック</span></div><div class="r">サンプル代理店A<div class="av">A</div></div></div>
+    <div class="body">
+      <div class="card" style="padding:18px">
+        <div class="search-row">
+          <div class="field" style="margin:0"><label>代表電話番号</label><div class="inp filled">03-1234-5678</div></div>
+          <div class="field" style="margin:0"><label>企業名（カナ）</label><div class="inp filled focus">テレモ</div></div>
+          <div class="field" style="margin:0"><label>代表者名（カナ）</label><div class="inp">ヤマダタロウ</div></div>
+          <div class="field" style="margin:0"><label>住所（丁目まで）</label><div class="inp">東京都豊島区池袋1丁目</div></div>
+        </div>
+        <div class="btn" style="width:100%;margin-top:16px;padding:12px"><svg class="icon sm" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg> 検索して判定する</div>
+      </div>
+      <div class="verdict">
+        <div class="signal"><i class="r"></i><i></i><i></i></div>
+        <div>
+          <span class="vt"><svg class="icon sm" viewBox="0 0 24 24" style="stroke-width:2.4"><path d="M18 6 6 18M6 6l12 12"/></svg> NG ― 提案不可</span>
+          <h4>この企業には今アプローチできません</h4>
+          <p>すでに他の代理店が商談を進めています。二重営業を避けるため、運営にご確認ください。</p>
+        </div>
+      </div>
+      <div class="banner b-note"><svg class="icon sm bi" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><div>どの代理店が保有しているか・商談日・企業名などの<b>競合情報は表示しません</b>。サーバー側で判断し、結果だけを返す設計です。</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 4 REGISTER -->
+<div class="flabel">④ 企業登録 /register</div>
+<div class="frame" id="s-register">
+  <div class="side">
+    <div class="logo">T</div>
+    <div class="nav">
+      <a><svg class="icon" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>ホーム</a>
+      <a><svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>チェック</a>
+      <a class="on"><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M9 21v-4h6v4"/></svg>企業</a>
+      <a><svg class="icon" viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1"/></svg>予定</a>
+    </div>
+    <div class="foot"><div class="pa">A</div>代理店A</div>
+  </div>
+  <div class="main">
+    <div class="top"><div class="h">商談した企業を登録<span class="sub">台帳に追加して営業権を記録</span></div><div class="r">サンプル代理店A<div class="av">A</div></div></div>
+    <div class="body">
+      <div class="banner b-info"><svg class="icon sm bi" viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1"/></svg><div style="display:flex;align-items:center;gap:10px;width:100%"><b style="color:var(--ink)">提案予定から選ぶ</b> — 企業名・電話番号が自動入力 <span style="margin-left:auto;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:#fff;color:var(--ink);font-weight:500">テレモ（03-1234-5678）<svg class="icon sm" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div></div>
+      <div class="card" style="padding:20px">
+        <div class="grid2">
+          <div class="field"><label>企業名（必須・カナ）</label><div class="inp filled">テレモ</div></div>
+          <div class="field"><label>代表電話番号</label><div class="inp filled">03-1234-5678</div></div>
+          <div class="field"><label>代表者名（カナ）</label><div class="inp">ヤマダタロウ</div></div>
+          <div class="field"><label>住所（丁目まで）</label><div class="inp">東京都豊島区池袋1丁目</div></div>
+          <div class="field"><label>商談日（必須）</label><div class="inp filled"><svg class="icon sm ii" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg> 2026 / 08 / 12</div></div>
+          <div class="field"><label>現在ステータス</label><div class="inp filled">商談 <svg class="icon sm ii" viewBox="0 0 24 24" style="margin-left:auto"><path d="m6 9 6 6 6-6"/></svg></div></div>
+        </div>
+        <div class="btn" style="width:100%;padding:12px"><svg class="icon sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> 登録する</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 5 PLAN -->
+<div class="flabel">⑤ 提案予定 /plan</div>
+<div class="frame" id="s-plan">
+  <div class="side">
+    <div class="logo">T</div>
+    <div class="nav">
+      <a><svg class="icon" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>ホーム</a>
+      <a><svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>チェック</a>
+      <a><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M9 21v-4h6v4"/></svg>企業</a>
+      <a class="on"><svg class="icon" viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h4"/></svg>予定</a>
+    </div>
+    <div class="foot"><div class="pa">A</div>代理店A</div>
+  </div>
+  <div class="main">
+    <div class="top"><div class="h">商談の提案予定<span class="sub">先に押さえたい企業をストック</span></div><div class="r">サンプル代理店A<div class="av">A</div></div></div>
+    <div class="body">
+      <div class="card" style="padding:18px">
+        <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:16px;align-items:end">
+          <div class="field" style="margin:0"><label>企業名（カナ・必須）</label><div class="inp filled">テレモ</div></div>
+          <div class="field" style="margin:0"><label>代表電話番号</label><div class="inp filled">03-1234-5678</div></div>
+          <div class="btn" style="padding:11px 16px"><svg class="icon sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> 提案予定に登録</div>
+        </div>
+      </div>
+      <div class="banner b-warn"><svg class="icon sm bi" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><div>この企業は他の代理店が「提案予定」に登録しています（<b>提案不可ではありません</b>／お知らせのみ）。</div></div>
+      <div class="card">
+        <div class="ch">自分の提案予定 <span class="count">2件</span></div>
+        <table>
+          <tr><th>企業名</th><th>電話番号</th><th>登録日</th><th></th></tr>
+          <tr><td><div class="co"><span class="fav">テ</span>テレモ</div></td><td>03-1234-5678</td><td>2026/08/12</td><td><span class="muted" style="font-size:12.5px">削除</span></td></tr>
+          <tr><td><div class="co"><span class="fav">ウ</span>ウチダ</div></td><td>06-5432-1000</td><td>2026/08/10</td><td><span class="muted" style="font-size:12.5px">削除</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 6 ADMIN -->
+<div class="flabel">⑥ 運営管理 /admin（ダミーデータ）</div>
+<div class="frame" id="s-admin">
+  <div class="side">
+    <div class="logo" style="background:#334155">運</div>
+    <div class="nav">
+      <a class="on"><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M9 21v-4h6v4"/></svg>企業</a>
+      <a><svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 6a3 3 0 0 1 0 6"/></svg>代理店</a>
+      <a><svg class="icon" viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h4"/></svg>予定</a>
+    </div>
+    <div class="foot"><div class="pa">運</div>運営本部</div>
+  </div>
+  <div class="main">
+    <div class="top"><div class="h">運営管理 — 全企業<span class="sub">全代理店の営業権を一元監視</span></div><div class="r"><div class="btn" style="padding:9px 14px;font-size:13px"><svg class="icon sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> 過去の企業を登録</div><div class="av">運</div></div></div>
+    <div class="body" style="gap:16px">
+      <div class="kpis" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi" style="padding:16px"><div class="head"><span class="name">全企業</span><span class="ic"><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M9 21v-4h6v4"/></svg></span></div><div class="num">128</div><div class="foot"><span class="delta up"><svg class="icon sm" viewBox="0 0 24 24"><path d="M5 15l7-7 7 7"/></svg>+8%</span><span class="cap">先月比</span></div></div>
+        <div class="kpi" style="padding:16px"><div class="head"><span class="name">NG（保護中）</span><span class="ic"><svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></span></div><div class="num">54</div><div class="foot"><span class="cap">全体の 42%</span></div></div>
+        <div class="kpi" style="padding:16px"><div class="head"><span class="name">運営確認</span><span class="ic"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg></span></div><div class="num">17</div><div class="foot"><span class="cap">要対応</span></div></div>
+        <div class="kpi" style="padding:16px"><div class="head"><span class="name">代理店</span><span class="ic"><svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/></svg></span></div><div class="num">9</div><div class="foot"><span class="cap">アクティブ</span></div></div>
+      </div>
+      <div class="card" style="padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-size:14px;font-weight:600">提案可否の分布</div><div class="faint" style="font-size:12px">全128社</div></div>
+        <div class="distbar"><i style="width:42%;background:var(--ng)"></i><i style="width:13%;background:var(--warn)"></i><i style="width:45%;background:var(--ok)"></i></div>
+        <div class="distlegend"><div><i style="background:var(--ng)"></i>NG <b>54</b></div><div><i style="background:var(--warn)"></i>運営確認 <b>17</b></div><div><i style="background:var(--ok)"></i>OK <b>57</b></div></div>
+      </div>
+      <div class="card">
+        <div class="ch">企業一覧 <span class="count">担当代理店・提案可否つき</span></div>
+        <table>
+          <tr><th>企業名</th><th>商談日</th><th>ステータス</th><th>担当代理店</th><th>提案可否</th><th></th></tr>
+          <tr><td><div class="co"><span class="fav">サ</span>サンプル商事</div></td><td>2026/06/12</td><td>成約</td><td>代理店A</td><td><span class="pill p-ng">NG</span></td><td><span class="p-brand pill">編集</span></td></tr>
+          <tr><td><div class="co"><span class="fav">ダ</span>ダミー工業</div></td><td>2026/07/01</td><td>商談</td><td>代理店B</td><td><span class="pill p-ng">NG</span></td><td><span class="p-brand pill">編集</span></td></tr>
+          <tr><td><div class="co"><span class="fav">テ</span>テスト物産</div></td><td>2026/04/20</td><td>失注</td><td>代理店C</td><td><span class="pill p-ok">OK</span></td><td><span class="p-brand pill">編集</span></td></tr>
+          <tr><td><div class="co"><span class="fav">見</span>見本フーズ</div></td><td>2026/05/05</td><td>検討中</td><td>代理店A</td><td><span class="pill p-warn">運営確認</span></td><td><span class="p-brand pill">編集</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 7 ADMIN AGENCIES -->
+<div class="flabel">⑦ 代理店アカウント管理 /admin/agencies（ダミーデータ）</div>
+<div class="frame" id="s-agencies">
+  <div class="side">
+    <div class="logo" style="background:#334155">運</div>
+    <div class="nav">
+      <a><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M9 21v-4h6v4"/></svg>企業</a>
+      <a class="on"><svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 6a3 3 0 0 1 0 6"/></svg>代理店</a>
+      <a><svg class="icon" viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1"/></svg>予定</a>
+    </div>
+    <div class="foot"><div class="pa">運</div>運営本部</div>
+  </div>
+  <div class="main">
+    <div class="top"><div class="h">代理店アカウント管理<span class="sub">作成・権限・パスワードの管理</span></div><div class="r"><div class="av">運</div></div></div>
+    <div class="body">
+      <div class="card" style="padding:20px">
+        <div style="font-size:14px;font-weight:600;margin-bottom:16px">新規アカウントを追加</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 0.8fr auto;gap:14px;align-items:end">
+          <div class="field" style="margin:0"><label>名前</label><div class="inp">株式会社〇〇代理店</div></div>
+          <div class="field" style="margin:0"><label>ログインID</label><div class="inp filled">agency09</div></div>
+          <div class="field" style="margin:0"><label>初期パスワード</label><div class="inp">••••••••</div></div>
+          <div class="field" style="margin:0"><label>権限</label><div class="inp filled">代理店 ▾</div></div>
+          <div class="btn" style="padding:11px 16px"><svg class="icon sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> 追加</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch">アカウント一覧 <span class="count">9件</span></div>
+        <table>
+          <tr><th>名前</th><th>ログインID</th><th>権限</th><th>操作</th></tr>
+          <tr><td><div class="co"><span class="fav">A</span>サンプル代理店A</div></td><td>agency01</td><td><span class="pill p-neutral">代理店</span></td><td class="muted" style="font-size:12.5px">パスワード再設定 ・ 削除</td></tr>
+          <tr><td><div class="co"><span class="fav">B</span>サンプル代理店B</div></td><td>agency02</td><td><span class="pill p-neutral">代理店</span></td><td class="muted" style="font-size:12.5px">パスワード再設定 ・ 削除</td></tr>
+          <tr><td><div class="co"><span class="fav" style="background:#0f172a;color:#fff">運</span>運営本部</div></td><td>admin</td><td><span class="pill p-brand">運営本部</span></td><td class="muted" style="font-size:12.5px">パスワード再設定</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 8 ADMIN PLANS -->
+<div class="flabel">⑧ 提案予定一覧 /admin/plans（ダミーデータ）</div>
+<div class="frame" id="s-adminplans">
+  <div class="side">
+    <div class="logo" style="background:#334155">運</div>
+    <div class="nav">
+      <a><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M9 21v-4h6v4"/></svg>企業</a>
+      <a><svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 6a3 3 0 0 1 0 6"/></svg>代理店</a>
+      <a class="on"><svg class="icon" viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h4"/></svg>予定</a>
+    </div>
+    <div class="foot"><div class="pa">運</div>運営本部</div>
+  </div>
+  <div class="main">
+    <div class="top"><div class="h">提案予定の一覧 — 全代理店<span class="sub">先取りの重複をお知らせ</span></div><div class="r"><div class="av">運</div></div></div>
+    <div class="body">
+      <div class="banner b-info"><svg class="icon sm bi" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg><div>各代理店が「これから提案する予定」として登録した企業の一覧です（商談ではないので<b style="color:var(--ink)">営業権は発生しません</b>）。</div></div>
+      <div class="card">
+        <div class="ch">提案予定 <span class="count">全24件</span></div>
+        <table>
+          <tr><th>企業名</th><th>電話番号</th><th>登録した代理店</th><th>登録日</th></tr>
+          <tr><td><div class="co"><span class="fav">サ</span>サンプル商事</div></td><td>03-1111-2222</td><td>代理店A</td><td>2026/08/12</td></tr>
+          <tr><td><div class="co"><span class="fav">ダ</span>ダミー物産</div></td><td>06-3333-4444</td><td>代理店B</td><td>2026/08/11</td></tr>
+          <tr><td><div class="co"><span class="fav">見</span>見本テック</div></td><td>03-5555-6666</td><td>代理店A</td><td>2026/08/10</td></tr>
+          <tr><td><div class="co"><span class="fav">テ</span>テスト工業</div></td><td>052-777-8888</td><td>代理店C</td><td>2026/08/09</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
