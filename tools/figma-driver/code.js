@@ -72,7 +72,7 @@ const H = {
 
   async clearPage() { const k = figma.currentPage.children.slice(); k.forEach((c) => c.remove()); for (const id in nodes) delete nodes[id]; return { cleared: k.length }; },
 
-  async createFrame(cmd) { const f = figma.createFrame(); f.resize(cmd.width || 100, cmd.height || 100); if (cmd.fills == null) f.fills = paints('#ffffff'); applyCommon(f, cmd); if (cmd.clip != null) f.clipsContent = cmd.clip; autoLayout(f, cmd); parent(cmd.parentId).appendChild(f); if (cmd.id != null) nodes[cmd.id] = f; return summary(f); },
+  async createFrame(cmd) { const f = figma.createFrame(); f.resize(cmd.width || 100, cmd.height || 100); if (!('fills' in cmd)) f.fills = paints('#ffffff'); else if (cmd.fills == null) f.fills = []; applyCommon(f, cmd); if (cmd.clip != null) f.clipsContent = cmd.clip; autoLayout(f, cmd); parent(cmd.parentId).appendChild(f); if (cmd.id != null) nodes[cmd.id] = f; return summary(f); },
 
   async createRect(cmd) { const r = figma.createRectangle(); r.resize(cmd.width || 100, cmd.height || 100); if (cmd.fills == null) r.fills = paints('#e5e7eb'); applyCommon(r, cmd); parent(cmd.parentId).appendChild(r); if (cmd.id != null) nodes[cmd.id] = r; return summary(r); },
 

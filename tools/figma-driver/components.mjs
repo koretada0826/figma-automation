@@ -78,17 +78,18 @@ export async function kpiCard(o) {
   return card;
 }
 
-// サイドバー（ネイビー・アクティブのみ塗り青）
+// サイドバー（ダーク・アクティブのみアクセント塗り）。accent=ブランド色, navFill=地色
 export async function sidebar(o) {
   const items = o.items || [];
-  const bar = await frame({ name: 'sidebar', parentId: o.parentId, x: o.x || 0, y: o.y || 0, width: 96, height: o.height || 720, layoutMode: 'VERTICAL', itemSpacing: 8, pad: [20, 12, 20, 12], counterAlign: 'CENTER', fills: c.nav });
-  // logo
-  const lg = await frame({ name: 'logo', parentId: bar, width: 40, height: 40, cornerRadius: 11, layoutMode: 'HORIZONTAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', fills: c.brand });
-  await text({ parentId: lg, characters: 'T', fontName: font('Bold'), fontSize: 18, fills: c.white });
+  const accent = o.accent || c.brand;
+  const navFill = o.navFill || c.nav;
+  const bar = await frame({ name: 'sidebar', parentId: o.parentId, x: o.x || 0, y: o.y || 0, width: o.width || 96, height: o.height || 720, layoutMode: 'VERTICAL', itemSpacing: 8, pad: [20, 12, 20, 12], counterAlign: 'CENTER', fills: navFill });
+  const lg = await frame({ name: 'logo', parentId: bar, width: 40, height: 40, cornerRadius: 11, layoutMode: 'HORIZONTAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', fills: accent });
+  await text({ parentId: lg, width: 40, align: 'CENTER', characters: o.logo || 'T', fontName: font('Bold'), fontSize: 18, fills: c.white });
   for (let i = 0; i < items.length; i++) {
     const on = i === (o.active || 0);
-    const it = await frame({ name: 'nav-' + items[i], parentId: bar, width: 64, height: 56, cornerRadius: 12, layoutMode: 'VERTICAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', itemSpacing: 4, fills: on ? c.brand : c.nav });
-    await text({ parentId: it, characters: items[i], fontName: jp('Medium'), fontSize: 11, fills: on ? c.white : c.navSub });
+    const it = await frame({ name: 'nav-' + items[i], parentId: bar, width: 64, height: 56, cornerRadius: 12, layoutMode: 'VERTICAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', itemSpacing: 4, fills: on ? accent : navFill });
+    await text({ parentId: it, width: 64, align: 'CENTER', characters: items[i], fontName: jp('Medium'), fontSize: 11, fills: on ? c.white : c.navSub });
   }
   return bar;
 }
@@ -125,25 +126,34 @@ export async function sectionHeader(o) {
 }
 
 // KPIカード + 本物のスパークライン（数字ファースト）
+// valueColor で数字を色分け / spark:false でスパークライン省略（ミニマル）
 export async function statCard(o) {
   const W = o.width || 320;
   const down = o.deltaTone === 'down';
-  const card = await frame({ name: 'stat', parentId: o.parentId, x: o.x, y: o.y, width: W, height: 148, cornerRadius: r.card, layoutMode: 'VERTICAL', itemSpacing: 8, pad: [20, 22, 20, 22], fills: c.surface, strokes: c.border, strokeWeight: 1, effects: shadow.sm });
-  await text({ parentId: card, characters: o.label, fontName: jp('Medium'), fontSize: 13, fills: c.sub });
-  await text({ parentId: card, characters: String(o.value), fontName: font('Bold'), fontSize: 34, fills: c.ink });
+  const hasSpark = o.spark !== false;
+  const numberFirst = o.numberFirst; // 数字を上・ラベルを下（after-dash風）
+  const card = await frame({ name: 'stat', parentId: o.parentId, x: o.x, y: o.y, width: W, height: hasSpark ? 148 : 104, cornerRadius: r.card, layoutMode: 'VERTICAL', itemSpacing: numberFirst ? 4 : 8, pad: [20, 22, 20, 22], fills: c.surface, strokes: c.border, strokeWeight: 1, effects: shadow.sm });
+  const labelNode = () => text({ parentId: card, characters: o.label, fontName: jp('Medium'), fontSize: 13, fills: c.sub });
+  const valueNode = () => text({ parentId: card, characters: String(o.value), fontName: font('Bold'), fontSize: 34, fills: o.valueColor || c.ink });
+  if (numberFirst) { await valueNode(); await labelNode(); } else { await labelNode(); await valueNode(); }
   if (o.delta) await text({ parentId: card, characters: o.delta, fontName: jp('Medium'), fontSize: 12, fills: down ? c.ng : c.ok });
-  await sparkline({ parentId: card, width: W - 44, height: 30, data: o.spark || [6, 9, 7, 12, 10, 15, 13], color: down ? c.ng : c.brand, fill: down ? c.ngBg : c.brand050 });
+  if (hasSpark) await sparkline({ parentId: card, width: W - 44, height: 30, data: o.spark || [6, 9, 7, 12, 10, 15, 13], color: down ? c.ng : c.brand, fill: down ? c.ngBg : c.brand050 });
   return card;
 }
 
-// アクションバー（強調・青枠の実行導線＋矢印）
+// アクションバー（実行導線）。variant:'soft'(淡色枠) | 'solid'(グラデ塗り・白文字)
+// accent でブランド色、gradient で塗りグラデを指定可能
 export async function actionBar(o) {
-  const bar = await frame({ name: 'actionBar', parentId: o.parentId, x: o.x, y: o.y, width: o.width || 620, height: 56, cornerRadius: r.panel, layoutMode: 'HORIZONTAL', counterAlign: 'CENTER', paddingH: 18, itemSpacing: 12, fills: c.brand050, strokes: c.brand100, strokeWeight: 1 });
-  const icon = await frame({ parentId: bar, width: 32, height: 32, cornerRadius: 8, layoutMode: 'VERTICAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', fills: c.brand });
-  await text({ parentId: icon, width: 32, align: 'CENTER', characters: o.icon || '✓', fontName: font('Bold'), fontSize: 15, fills: c.white });
-  const txt = await frame({ parentId: bar, layoutMode: 'VERTICAL', itemSpacing: 2, fills: null });
-  await text({ parentId: txt, characters: o.title || '重複チェック', fontName: jp('Bold'), fontSize: 14, fills: c.ink });
-  if (o.sub) await text({ parentId: txt, characters: o.sub, fontName: jp('Regular'), fontSize: 12, fills: c.sub });
+  const solid = o.variant === 'solid';
+  const accent = o.accent || c.brand;
+  const h = o.height || 72;
+  const barFill = solid ? (o.gradient || { gradient: 'linear', angle: 135, stops: [{ color: accent, pos: 0 }, { color: c.brandActive, pos: 1 }] }) : c.brand050;
+  const bar = await frame({ name: 'actionBar', parentId: o.parentId, x: o.x, y: o.y, width: o.width || 620, height: h, cornerRadius: r.lg, layoutMode: 'HORIZONTAL', counterAlign: 'CENTER', paddingH: 20, itemSpacing: 14, fills: barFill, strokes: solid ? null : c.brand100, strokeWeight: solid ? 0 : 1, effects: solid ? shadow.md : null });
+  const icon = await frame({ parentId: bar, width: 36, height: 36, cornerRadius: 9, layoutMode: 'VERTICAL', primaryAlign: 'CENTER', counterAlign: 'CENTER', fills: solid ? c.white : accent });
+  await text({ parentId: icon, width: 36, align: 'CENTER', characters: o.icon || '⌕', fontName: font('Bold'), fontSize: 16, fills: solid ? accent : c.white });
+  const txt = await frame({ parentId: bar, layoutMode: 'VERTICAL', itemSpacing: 3, fills: null });
+  await text({ parentId: txt, characters: o.title || '重複チェック', fontName: jp('Bold'), fontSize: 15, fills: solid ? c.white : c.ink });
+  if (o.sub) await text({ parentId: txt, characters: o.sub, fontName: jp('Regular'), fontSize: 12, fills: solid ? '#ffffffcc' : c.sub });
   return bar;
 }
 

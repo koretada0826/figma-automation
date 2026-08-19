@@ -105,7 +105,9 @@ function renderNode(node) {
   } else if (c.cmd === 'placeImage') {
     html = '<div style="' + base + radius + border + shadow + 'overflow:hidden"><img src="' + c._dataUrl + '" style="width:100%;height:100%;object-fit:cover"/></div>';
   } else {
-    const bg = cssFill(c.fills, c.cmd === 'createEllipse' ? '#e5e7eb' : '#ffffff');
+    // fills が null/空配列のフレームは透明（構造用フレーム）。本物Figmaの createFrame と挙動を一致させる
+    const transparent = c.cmd === 'createFrame' && (c.fills == null || (Array.isArray(c.fills) && c.fills.length === 0));
+    const bg = transparent ? 'transparent' : cssFill(c.fills, c.cmd === 'createEllipse' ? '#e5e7eb' : '#ffffff');
     const ell = c.cmd === 'createEllipse' ? 'border-radius:50%;' : '';
     html = '<div style="' + base + 'background:' + bg + ';' + radius + ell + border + shadow + '"></div>';
   }
